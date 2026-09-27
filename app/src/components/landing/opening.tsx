@@ -442,7 +442,7 @@ export default function Opening({
           Placeholder plates: {missing.join(", ")}
         </div>
       )}
-      {showSkip && !done && (
+      {showSkip && !done && !menuReady && (
         <button
           onClick={skip}
           style={{ ...btn, right: 28, bottom: 24, opacity: showUi ? 1 : 0 }}

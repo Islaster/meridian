@@ -27,3 +27,10 @@ export const ashStaff = new Weapon("ash-staff", "Ash staff", "staff", 3, {
 });
 export const beltKnife = new Weapon("belt-knife", "Belt knife", "sword", 3);
 export const huntingBow = new Weapon("hunting-bow", "Hunting bow", "bow", 4);
+export const halesBlade = new Weapon(
+  "hales-blade",
+  "Hale's blade",
+  "sword",
+  6,
+  { grade: "rare", scaling: { stat: "lck", per: 0.5, from: 5 } }
+);

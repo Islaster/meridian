@@ -30,6 +30,20 @@ const met = (c: Condition, e: Event | null, s: GameState): boolean =>
     ? e?.kind === "talk" && e.npc === c.npc
     : e?.kind === "clear" && e.dungeon === c.dungeon;
 
+export const offer = (s: GameState, id: string): GameState =>
+  id in s.quests || s.done.includes(id) || s.offered.includes(id)
+    ? s
+    : { ...s, offered: [...s.offered, id] };
+
+export const accept = (s: GameState, id: string): GameState =>
+  start({ ...s, offered: s.offered.filter((q) => q !== id) }, id);
+
+export const decline = (s: GameState, id: string): GameState => ({
+  ...s,
+  offered: s.offered.filter((q) => q !== id),
+  done: [...s.done, `declined:${id}`],
+});
+
 export const start = (s: GameState, id: string): GameState =>
   id in s.quests || s.done.includes(id)
     ? s
@@ -43,7 +57,8 @@ export function progress(s: GameState, e: Event | null): GameState {
     if (!st || !met(st.complete, e, next)) continue;
     let bag = next.bag,
       player = next.player,
-      done = next.done;
+      done = next.done,
+      offered = next.offered;
     const quests = { ...next.quests };
     for (const it of st.take ?? []) bag = takeItem(bag, it);
     for (const it of st.give ?? []) bag = giveItem(bag, it);
@@ -55,9 +70,10 @@ export function progress(s: GameState, e: Event | null): GameState {
 
       bag = { ...bag, gold: bag.gold + (q.reward.gold ?? 0) };
       for (const it of q.reward.items ?? []) bag = giveItem(bag, it);
-      if (q.next) quests[q.next] = 0;
+      if (q.next && !next.offered.includes(q.next))
+        offered = [...offered, q.next];
     } else quests[id] = idx + 1;
-    next = { ...next, bag, player, done, quests };
+    next = { ...next, bag, player, done, quests, offered };
   }
   return next === s ? s : progress(next, null); // items just moved — re-check "have" stages
 }
@@ -66,12 +82,22 @@ const locationOfNpc = (npc: string) =>
   [...Location.registry.values()].find((l) => l.npcs.includes(npc))?.id;
 
 function nextHop(from: string, to: string): string | undefined {
-  if (!Location.registry.has(to)) return;
   const prev = new Map<string, string>(),
     seen = new Set([from]),
     queue = [from];
   while (queue.length) {
     const cur = queue.shift()!;
+    console.log(
+      "nextHop",
+      from,
+      "→",
+      to,
+      "| cur:",
+      cur,
+      "| isLocation:",
+      Location.registry.has(cur)
+    );
+    if (!Location.registry.has(cur)) continue; // dungeons are destinations, not corridors
     for (const ex of Location.get(cur).exits) {
       if (seen.has(ex.to)) continue;
       seen.add(ex.to);
@@ -127,6 +153,16 @@ export function signals(s: GameState): Signals {
 
 export function narrate(before: GameState, after: GameState): Note[] {
   const out: Note[] = [];
+  for (const id of after.offered)
+    if (!before.offered.includes(id)) {
+      const q = Quest.get(id);
+      out.push({
+        kind: "reward",
+        text: `${GLYPH[q.kind]} ${
+          q.name
+        } — offered. Open the Ledger to take it up.`,
+      });
+    }
   for (const [id, idx] of Object.entries(after.quests)) {
     const q = Quest.get(id),
       was = before.quests[id];

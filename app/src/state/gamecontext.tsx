@@ -1,6 +1,15 @@
 import { createContext, useContext, useState, type ReactNode } from "react";
-import { player, time, bag, location, done, quests } from "./newGameState";
+import {
+  player,
+  time,
+  bag,
+  location,
+  done,
+  quests,
+  offered,
+} from "./newGameState";
 import type { GameState } from "./types";
+import { Toasts } from "./toasts";
 
 interface GameContext {
   state: GameState;
@@ -20,6 +29,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     world: location,
     done,
     quests,
+    offered,
   });
 
   function changeState<K extends keyof GameState>(
@@ -29,7 +39,12 @@ export function GameProvider({ children }: { children: ReactNode }) {
     setState((prev) => ({ ...prev, [prop]: value }));
     if (prop === "done") console.log("write done:", value);
   }
-  return <Ctx.Provider value={{ state, changeState }}>{children}</Ctx.Provider>;
+  return (
+    <Ctx.Provider value={{ state, changeState }}>
+      {children}
+      <Toasts state={state} />
+    </Ctx.Provider>
+  );
 }
 
 export function useGame(): GameContext {

@@ -5,9 +5,12 @@ import MainMenu from "./components/main-menu/mainmenu";
 import Creation from "./components/character-creation/creation";
 import Entrance from "./components/game/entrance";
 import Town from "./components/game/town";
+import DungeonScreen from "./components/game/dungeon";
+import { useGame } from "./state/gamecontext";
 
 function App() {
   const [screen, setScreen] = useState("");
+  const { state } = useGame();
   return (
     <>
       {screen === "" && (
@@ -22,7 +25,8 @@ function App() {
       )}
       {screen === "start" && <Creation onDone={() => setScreen("entrance")} />}
       {screen === "entrance" && <Entrance onDone={() => setScreen("game")} />}
-      {screen == "game" && <Town />}
+      {screen === "game" &&
+        (state.world.dungeon ? <DungeonScreen /> : <Town />)}
     </>
   );
 }

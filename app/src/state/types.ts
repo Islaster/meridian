@@ -28,7 +28,9 @@ export interface GameState {
     class?: string;
     statPoints: number;
     skillPoints: number;
-    skills: Record<string, number>; // skill id → level
+    skills: Record<string, number>;
+    hp: number;
+    maxHp: number;
   };
   bag: {
     gold: number;
@@ -43,7 +45,9 @@ export interface GameState {
     town?: string;
     dungeon?: string;
     camp?: string;
+    room?: string;
   };
   quests: Record<string, number>;
   done: string[];
+  offered: string[];
 }

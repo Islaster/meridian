@@ -24,6 +24,8 @@ export const player: GameState["player"] = {
   statPoints: 0,
   skillPoints: 0,
   skills: {},
+  hp: 20,
+  maxHp: 20,
 };
 
 export const bag: GameState["bag"] = {
@@ -48,3 +50,5 @@ export const quests: GameState["quests"] = {
 };
 
 export const done: GameState["done"] = [];
+
+export const offered: GameState["offered"] = [];

@@ -59,6 +59,7 @@ export class Weapon extends Item {
   damage: number;
   reqLevel: number;
   reqStats: Record<string, number>;
+  scaling?: { stat: string; per: number; from: number };
   constructor(
     id: string,
     name: string,
@@ -69,6 +70,7 @@ export class Weapon extends Item {
       reqStats?: Record<string, number>;
       price?: number;
       grade?: Grade;
+      scaling?: { stat: string; per: number; from: number };
     } = {}
   ) {
     super(id, name, "weapon", opts.grade ?? "normal", opts.price ?? 0);
@@ -76,6 +78,7 @@ export class Weapon extends Item {
     this.damage = damage;
     this.reqLevel = opts.reqLevel ?? 1;
     this.reqStats = opts.reqStats ?? {};
+    this.scaling = opts.scaling ?? undefined;
   }
 }
 

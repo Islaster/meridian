@@ -1,10 +1,15 @@
-import React, { useState } from "react";
-import Typewriter from "../shared/typewriter";
+import { useEffect, useState, type KeyboardEvent } from "react";
+import Passage from "../shared/passage";
 import SkipButton from "../shared/skipbutton";
 import { SERIF, MenuButton } from "../landing/cards";
+import LedgerLine from "../shared/ledgerline";
 
-const BLURB =
-  "The letter found you on the coast road. A relative you never met has died, and left you what little remained: a shuttered workshop, a roof, and a name on the deed that was not yours. The town does not ask where you came from. It asks what to call you.";
+const BLURB = [
+  "The letter found you on the coast road. A relative you never met has died, and left you what little remained: a shuttered workshop, a roof, and a name on the deed that was not yours.",
+  "Everyone has a Ledger, and always has: a line of pale writing at the edge of sight, that no one wrote, that records. Masters read it before they teach. The Guild built its charters on it. It has never answered a question. It has never been wrong.",
+  "It writes a name the first time a person binds themselves to something — a master, a crew, a promise kept past the point of convenience. Most bind young. You never have.",
+  "Now there is a dead man's shop, and the question of whether you will take it up. Your Ledger has opened a line for the answer.",
+];
 
 export default function IntroStep({
   onNamed,
@@ -13,14 +18,20 @@ export default function IntroStep({
 }) {
   const [done, setDone] = useState(false);
   const [skip, setSkip] = useState(false);
+  const [recorded, setRecorded] = useState(false);
   const [name, setName] = useState("");
-  const handleEnterKey = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    console.log("keydown fired:", event.key);
-    if (event.key === "Enter") {
-      console.log("Enter branch, name:", JSON.stringify(name));
-      if (name.trim()) onNamed(name.trim());
-    }
+  const record = () => {
+    if (name.trim()) setRecorded(true);
   };
+  const onKey = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") record();
+  };
+  useEffect(() => {
+    if (!recorded) return;
+    const id = window.setTimeout(() => onNamed(name.trim()), 1500);
+    return () => window.clearTimeout(id);
+  }, [recorded]);
+
   return (
     <div
       style={{
@@ -35,47 +46,35 @@ export default function IntroStep({
         justifyContent: "center",
         gap: 28,
         padding: 24,
+        boxSizing: "border-box",
       }}
     >
-      <p
-        style={{
-          maxWidth: 560,
-          lineHeight: 1.6,
-          textAlign: "center",
-          margin: 0,
-        }}
-      >
-        <Typewriter text={BLURB} complete={skip} onDone={() => setDone(true)} />
-      </p>
-      {done && (
+      <Passage lines={BLURB} complete={skip} onDone={() => setDone(true)} />
+      {done && !recorded && (
         <>
-          <p style={{ margin: 0 }}>What did they call you?</p>
-          <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            onKeyDown={(e) => handleEnterKey(e)}
-            autoFocus
-            style={{
-              font: "inherit",
-              textAlign: "center",
-              letterSpacing: "0.1em",
-              color: "inherit",
-              background: "transparent",
-              border: "none",
-              borderBottom: "1px solid rgba(233,236,242,0.35)",
-              padding: "6px 12px",
-              outline: "none",
-              width: 280,
-            }}
-          />
-          <MenuButton
-            label="Continue"
-            onClick={() => {
-              if (name.trim()) onNamed(name.trim());
-            }}
-          />
+          <LedgerLine>
+            《Name》&nbsp;
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              onKeyDown={onKey}
+              autoFocus
+              style={{
+                font: "inherit",
+                color: "inherit",
+                letterSpacing: "inherit",
+                background: "transparent",
+                border: "none",
+                outline: "none",
+                width: 200,
+                padding: 0,
+              }}
+            />
+          </LedgerLine>
+          <MenuButton label="Continue" onClick={record} />
         </>
       )}
+      {recorded && <LedgerLine>《Recorded》 {name.trim()}</LedgerLine>}
       {!done && <SkipButton onClick={() => setSkip(true)} />}
     </div>
   );

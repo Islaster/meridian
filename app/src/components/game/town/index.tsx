@@ -4,17 +4,18 @@ import { lend } from "../../../systems/inventory";
 import { Location, Npc, type Loadout } from "../../../data/locations";
 import { advance, sleep, isOpen } from "../../../systems/time";
 import { SERIF } from "../../landing/cards";
-import { progress, signals, start, GLYPH } from "../../../systems/quests";
+import { progress, signals, GLYPH } from "../../../systems/quests";
 import type { GameState } from "../../../state/types";
 import { hasItem } from "../../../systems/inventory";
-import { narrate } from "../../../systems/quests";
+import { narrate, offer as offerQuest } from "../../../systems/quests";
 import { Quest } from "../../../data/quests";
-import { Weapon, Item } from "../../../data/items";
 import { type Note } from "../../../systems/types";
 import QuestComplete from "./questcomplete";
 import PlayerMenu from "../menu/playerMenu";
 import LevelUp from "../menu/levelUp";
 import { xpToNext } from "../../../systems/progression";
+import { Dungeon } from "../../../data/dungeons";
+import QuestOffer from "../menu/questoffers";
 
 const wrap = {
   minHeight: "100vh",
@@ -44,14 +45,15 @@ export default function Town() {
   const [line, setLine] = useState<string | null>(null);
   const [notes, setNotes] = useState<Note[]>([]);
   const [offer, setOffer] = useState<Loadout[] | null>(null);
+  const [prompt, setPrompt] = useState<string | null>(null);
   const [menu, setMenu] = useState<null | "inventory" | "character" | "skills">(
     null
   );
+
   const clearLevelUp = () =>
     setNotes(notes.filter((n) => n.kind !== "levelup"));
 
   const sig = signals(state);
-  console.log("render done:", state.done);
   const apply = (n: GameState) => {
     changeState("world", n.world);
     changeState("time", n.time);
@@ -59,8 +61,24 @@ export default function Town() {
     changeState("player", n.player);
     changeState("quests", n.quests);
     changeState("done", n.done);
+    changeState("offered", n.offered);
   };
+
+  const promptNew = (before: GameState, after: GameState) => {
+    const fresh = after.offered.find((id) => !before.offered.includes(id));
+    if (fresh) setPrompt(fresh);
+  };
+
   const go = (to: string, hours: number) => {
+    if (Dungeon.registry.has(to)) {
+      apply({
+        ...state,
+        time: hours ? advance(state.time, hours) : state.time,
+        world: { ...state.world, dungeon: to, room: Dungeon.get(to).entrance },
+      });
+      return;
+    }
+
     setLine(null);
     const moved = {
       ...state,
@@ -69,36 +87,27 @@ export default function Town() {
     };
     const next = progress(moved, { kind: "visit", location: to });
     setNotes(narrate(state, next));
+    promptNew(state, next);
     apply(next);
   };
+
   const talk = (id: string) => {
     const n = Npc.get(id);
-    console.log(
-      "talk:",
-      n.id,
-      "lends:",
-      n.lends,
-      "sells:",
-      n.sells,
-      "done:",
-      state.done
-    );
     setLine(n.line);
-    if (n.lends && !state.done.includes(`loan:${n.id}`)) setOffer(n.lends);
+    if (
+      n.lends &&
+      !state.player.equipment?.mainWeapon &&
+      !state.done.includes(`loan:${n.id}`)
+    )
+      setOffer(n.lends);
     let next = progress(state, { kind: "talk", npc: id });
-    if (n.offers) next = progress(start(next, n.offers), null);
+    if (n.offers) next = offerQuest(next, n.offers);
     setNotes(narrate(state, next));
+    promptNew(state, next);
     apply(next);
   };
+
   const take = (lo: Loadout) => {
-    console.log(
-      "take:",
-      lo.id,
-      "weapon?",
-      lo.items.map((i) => Item.get(i.id) instanceof Weapon),
-      "hand before:",
-      state.player.equipment?.mainWeapon
-    );
     const npc = loc.npcs
       .map((id) => Npc.get(id))
       .find((n) => n.lends === offer)!;
@@ -122,8 +131,10 @@ export default function Town() {
     } catch (err) {
       console.error("take failed:", err);
     }
+    promptNew(state, next);
     apply(after);
   };
+
   const marks = (set?: Set<"main" | "side" | "bounty">) =>
     set?.size ? " " + [...set].map((k) => GLYPH[k]).join(" ") : "";
 
@@ -213,26 +224,20 @@ export default function Town() {
         return (
           <div key={id} style={{ opacity: 0.6, fontSize: "0.9em" }}>
             {GLYPH[q.kind]} {q.name} — {q.stages[i].objective}
-            {(() => {
-              const c = notes.find((n) => n.kind === "complete");
-              return c?.id ? (
-                <QuestComplete
-                  id={c.id}
-                  onClose={() =>
-                    setNotes(notes.filter((n) => n.kind !== "complete"))
-                  }
-                />
-              ) : null;
-            })()}
           </div>
         );
       })}
       {loc.exits.map((e) => {
-        const dest = Location.get(e.to);
-        const closed = !isOpen(dest.hours, state.time);
-        const locked = !!dest.requires && !hasItem(state.bag, dest.requires);
+        const dest = Dungeon.registry.has(e.to)
+          ? Dungeon.get(e.to)
+          : Location.get(e.to);
+        const place = dest instanceof Location ? dest : undefined;
+        const hours = place?.hours;
+        const requires = place?.requires;
+        const closed = !isOpen(hours, state.time);
+        const locked = !!requires && !hasItem(state.bag, requires);
         const why = closed
-          ? `closed until ${dest.hours!.open}:00`
+          ? `closed until ${hours!.open}:00`
           : locked
           ? "the door wants a key"
           : e.hours
@@ -275,7 +280,10 @@ export default function Town() {
       {loc.canRest && (
         <button
           style={ptr}
-          onClick={() => changeState("time", sleep(state.time))}
+          onClick={() => {
+            changeState("time", sleep(state.time));
+            if (state.offered.length) setPrompt(state.offered[0]);
+          }}
         >
           Sleep until morning
         </button>
@@ -287,7 +295,31 @@ export default function Town() {
       >
         [ menu ]
       </span>
+      {state.offered.length > 0 && (
+        <span
+          style={{ cursor: "pointer", marginLeft: 16 }}
+          onClick={() => setPrompt(state.offered[0])}
+        >
+          《Offered》 {state.offered.length}
+        </span>
+      )}
+
       {menu && <PlayerMenu initialTab={menu} onClose={() => setMenu(null)} />}
+      {prompt && !notes.some((n) => n.kind === "complete") && (
+        <QuestOffer id={prompt} onClose={() => setPrompt(null)} />
+      )}
+      {(() => {
+        const c = notes.find((n) => n.kind === "complete");
+        return c?.id ? (
+          <QuestComplete
+            id={c.id}
+            onClose={() => {
+              setNotes(notes.filter((n) => n.kind !== "complete"));
+              if (state.offered.length) setPrompt(state.offered[0]);
+            }}
+          />
+        ) : null;
+      })()}
       {(() => {
         const l = notes.find((n) => n.kind === "levelup");
         return l?.level && !notes.some((n) => n.kind === "complete") ? (

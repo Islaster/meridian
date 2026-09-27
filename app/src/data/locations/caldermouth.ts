@@ -52,7 +52,10 @@ new Location(
   "coast-road",
   "The coast road",
   "Salt wind, a ruined breakwater, a gate that still stands.",
-  [{ to: "town-gate", hours: 1 }]
+  [
+    { to: "town-gate", hours: 1 },
+    { to: "tide-cave", hours: 1 },
+  ]
 );
 new Location(
   "town-gate",

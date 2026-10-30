@@ -12,7 +12,7 @@ import {
   type Spoils,
 } from "../../systems/combat";
 
-import { SERIF } from "../../landing/cards";
+import { SERIF } from "../../ui/cards";
 
 interface Fighter {
   name: string;

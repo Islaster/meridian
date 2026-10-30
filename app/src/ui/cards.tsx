@@ -1,6 +1,6 @@
 // Intertitle card and title — DOM typography over the canvas, so text stays crisp.
 import { forwardRef } from "react";
-import { PALETTE, TITLE } from "./config";
+import { PALETTE, TITLE } from "../screens/opening/config";
 
 export const SERIF =
   '"Palatino Linotype", "Book Antiqua", Palatino, "Cormorant Garamond", Georgia, serif';

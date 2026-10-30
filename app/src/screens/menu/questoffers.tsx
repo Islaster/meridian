@@ -1,7 +1,7 @@
 import { useGame } from "../../state/gamecontext";
 import { Quest } from "../../data/quests";
 import { accept, unmet, GLYPH } from "../../systems/quests";
-import { SERIF, MenuButton } from "../../landing/cards";
+import { SERIF, MenuButton } from "../../ui/cards";
 import LedgerLine from "../../shared/ledgerline";
 
 export default function QuestOffer({

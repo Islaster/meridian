@@ -1,4 +1,4 @@
-import { SERIF, MenuButton } from "../../landing/cards";
+import { SERIF, MenuButton } from "../../ui/cards";
 import { Quest } from "../../data/quests";
 import { Item } from "../../data/items";
 

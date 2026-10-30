@@ -1,4 +1,4 @@
-import { MenuButton } from "../landing/cards";
+import { MenuButton } from "../../ui/cards";
 
 export interface MainMenuProps {
   onNewGame: () => void;

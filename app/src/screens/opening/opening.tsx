@@ -29,7 +29,7 @@ import {
   type PlateUrls,
 } from "./plates";
 import { FX } from "./fx";
-import { IntertitleCard, TitleOverlay, SERIF } from "./cards";
+import { IntertitleCard, TitleOverlay, SERIF } from "../../ui/cards";
 import type {
   CueName,
   FrameContext,

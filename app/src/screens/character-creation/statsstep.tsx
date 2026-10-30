@@ -1,5 +1,5 @@
 import { useState, type CSSProperties } from "react";
-import { SERIF, MenuButton } from "../landing/cards";
+import { SERIF, MenuButton } from "../../ui/cards";
 
 type Stats = Record<string, number>;
 

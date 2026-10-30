@@ -3,7 +3,7 @@ import { useGame } from "../../state/gamecontext";
 import { Item } from "../../data/items";
 import type { Shop as ShopDef } from "../../data/locations";
 import { buy, sell, itemByName } from "../../systems/inventory";
-import { SERIF, MenuButton } from "../../landing/cards";
+import { SERIF, MenuButton } from "../../ui/cards";
 import LedgerLine from "../../shared/ledgerline";
 
 const row = {

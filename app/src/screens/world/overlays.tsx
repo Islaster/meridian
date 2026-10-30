@@ -1,7 +1,7 @@
 import type { Town } from "./usetown";
 import PlayerMenu from "../menu/playerMenu";
 import ShopPanel from "../shop";
-import GuildBoard from "../guild/board";
+import GuildBoard from "../board";
 import QuestOffer from "../menu/questoffers";
 import QuestComplete from "./questcomplete";
 import LevelUp from "../menu/levelUp";

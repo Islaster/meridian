@@ -1,6 +1,6 @@
 import { useState } from "react";
 import Passage from "../shared/passage";
-import { SERIF, MenuButton } from "../landing/cards";
+import { SERIF, MenuButton } from "../ui/cards";
 import LedgerLine from "../shared/ledgerline";
 
 const LINES = [

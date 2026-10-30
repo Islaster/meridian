@@ -1,16 +1,16 @@
 import { useState } from "react";
-import { useGame } from "../state/context";
-import { SERIF, MenuButton } from "../landing/cards";
-import { ptr, dim, label, para } from "../shared/styles";
-import Gauge from "../shared/gauge";
+import { useGame } from "../../state/context";
+import { SERIF, MenuButton } from "../../ui/cards";
+import { ptr, dim, label, para } from "../../shared/styles";
+import Gauge from "../../shared/gauge";
 import {
   recipes,
   missing,
   gradeWindow,
   craft,
   type Make,
-} from "../systems/craft";
-import { type Craft } from "../data/items";
+} from "../../systems/craft";
+import { type Craft } from "../../data/items";
 
 type Stage = "choose" | "heat" | "draw" | "quench" | "finish" | "read";
 

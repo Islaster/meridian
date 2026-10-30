@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { useGame } from "../state/gamecontext";
-import { player as basePlayer } from "../state/newGameState";
+import { useGame } from "../../state/gamecontext";
+import { player as basePlayer } from "../../state/newGameState";
 import IntroStep from "./introstep";
 import StatsStep from "./statsstep";
 

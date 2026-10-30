@@ -1,8 +1,8 @@
 import { useEffect, useState, type KeyboardEvent } from "react";
-import Passage from "../shared/passage";
-import SkipButton from "../shared/skipbutton";
-import { SERIF, MenuButton } from "../landing/cards";
-import LedgerLine from "../shared/ledgerline";
+import Passage from "../../shared/passage";
+import SkipButton from "../../shared/skipbutton";
+import { SERIF, MenuButton } from "../../ui/cards";
+import LedgerLine from "../../shared/ledgerline";
 
 const BLURB = [
   "Everyone has a Ledger, and always has: a line of pale writing at the edge of sight, that no one wrote, that records. Masters read it before they teach. The Guild built its charters on it. It has never answered a question. It has never been wrong.",

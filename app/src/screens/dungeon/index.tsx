@@ -6,7 +6,7 @@ import { giveItem } from "../../systems/inventory";
 import { progress, narrate } from "../../systems/quests";
 import type { GameState } from "../../state/types";
 import type { Note } from "../../systems/types";
-import { SERIF } from "../../landing/cards";
+import { SERIF } from "../../ui/cards";
 import Battle from "../battle";
 import Death from "../death";
 import { surveyed } from "../../systems/dungeon";

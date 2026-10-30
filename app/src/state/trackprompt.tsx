@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useGame } from "./gamecontext";
 import { track, GLYPH } from "../systems/quests";
 import { Quest } from "../data/models/quest";
-import { SERIF } from "../landing/cards";
+import { SERIF } from "../ui/cards";
 
 const SHOW = 7000;
 

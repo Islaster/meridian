@@ -1,4 +1,4 @@
-import { SERIF, MenuButton } from "../../landing/cards";
+import { SERIF, MenuButton } from "../../ui/cards";
 import { useGame } from "../../state/gamecontext";
 
 export default function LevelUp({

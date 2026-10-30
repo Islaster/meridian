@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useGame } from "../../state/gamecontext";
-import { SERIF, MenuButton } from "../../landing/cards";
+import { SERIF, MenuButton } from "../../ui/cards";
 import { Weapon, Armor, Consumable } from "../../data/items";
 import { equip, unequip, itemByName, consume } from "../../systems/inventory";
 import { xpToNext } from "../../systems/progression";

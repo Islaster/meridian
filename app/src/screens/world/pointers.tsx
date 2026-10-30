@@ -1,6 +1,6 @@
 import type { Town } from "./usetown";
 import { ptr, dim, col, hollow } from "../../ui/styles";
-import { Npc } from "../../data/locations";
+import { Npc } from "../../data/world/locations";
 import { present } from "../../systems/presence";
 import { owned, buildable, shortfall, costText } from "../../systems/property";
 import { meets, marks } from "../../systems/quests";

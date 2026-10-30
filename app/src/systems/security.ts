@@ -1,4 +1,4 @@
-import { Dungeon, type Guard } from "../data/land";
+import { Dungeon, type Guard } from "../data/world/land";
 import { City } from "../models/city";
 
 const MATRIX: Guard[][] = [

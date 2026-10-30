@@ -1,4 +1,4 @@
-import { Location, Npc } from "../data/locations";
+import { Location, Npc } from "../data/world/locations";
 import { isOpen } from "./time";
 import type { GameState } from "../state/types";
 

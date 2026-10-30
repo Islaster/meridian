@@ -5,14 +5,14 @@ import {
   type Requirement,
   type Target,
 } from "../data/quests";
-import { Location, Npc } from "../data/locations";
+import { Location, Npc } from "../data/world/locations";
 import { Item } from "../data/items";
 import type { GameState } from "../state/types";
 import type { Note } from "./types";
 import { giveItem, takeItem, hasItem } from "./inventory";
 import { levelUp } from "./progression";
 import { whereIs, locationOfNpc } from "./presence";
-import { RANKS } from "../data/land";
+import { RANKS } from "../data/world/land";
 import { notify } from "./notices";
 import { placed } from "./actions";
 import { SPOTS } from "../data/gather";

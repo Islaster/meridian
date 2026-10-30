@@ -1,7 +1,7 @@
 import type { Town } from "./usetown";
 import { ptr, dim, col } from "../../ui/styles";
-import { Location } from "../../data/locations";
-import { Dungeon } from "../../data/land";
+import { Location } from "../../data/world/locations";
+import { Dungeon } from "../../data/world/land";
 import { isOpen, dur } from "../../systems/time";
 import { hasItem } from "../../systems/inventory";
 import { admission } from "../../systems/dungeon";

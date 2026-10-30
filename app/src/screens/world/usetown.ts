@@ -6,8 +6,8 @@ import {
   type Loadout,
   type Action,
   type Upgrade,
-} from "../../data/locations";
-import { Dungeon } from "../../data/land";
+} from "../../data/world/locations";
+import { Dungeon } from "../../data/world/land";
 import { advance, sleep, timeNote, WEARY } from "../../systems/time";
 import {
   progress,

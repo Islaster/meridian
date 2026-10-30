@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import type { GameState } from "../state/types";
 import { xpToNext } from "../systems/progression";
 import LedgerLine from "./ledgerline";
-import { RANKS } from "../data/land";
+import { RANKS } from "../data/world/land";
 
 const CATS = ["equipment", "consumables", "materials", "questItems"] as const;
 

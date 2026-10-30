@@ -1,7 +1,7 @@
 import { Item, Consumable } from "../data/items";
 import type { GameState } from "../state/types";
-import type { Loadout } from "../data/locations";
-import { Npc } from "../data/locations";
+import type { Loadout } from "../data/world/locations";
+import { Npc } from "../data/world/locations";
 import { notify } from "./notices";
 
 type Bag = GameState["bag"];

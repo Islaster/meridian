@@ -1,5 +1,5 @@
 import type { Grade } from "./item";
-import { TIER_COLORS, gateSize } from "../data/portals";
+import { TIER_COLORS, gateSize } from "../data/world/portals";
 
 export type LandKind = "dungeon" | "place"; // a dungeon is a gate; a place is just land
 export type RoomType =

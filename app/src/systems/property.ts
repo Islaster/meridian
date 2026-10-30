@@ -1,5 +1,5 @@
 import { Item } from "../data/items";
-import type { Location, Upgrade } from "../data/locations";
+import type { Location, Upgrade } from "../data/world/locations";
 import { countItem, takeItem } from "./inventory";
 import { advance } from "./time";
 import type { GameState } from "../state/types";

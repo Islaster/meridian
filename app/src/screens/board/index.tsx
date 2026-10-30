@@ -1,6 +1,6 @@
 import { useGame } from "../../state/gamecontext";
 import { SERIF, MenuButton } from "../../ui/cards";
-import { Dungeon, RANKS } from "../../data/land";
+import { Dungeon, RANKS } from "../../data/world/land";
 import { Monster } from "../../data/monsters";
 import { Item } from "../../data/items";
 import { Quest } from "../../data/quests";

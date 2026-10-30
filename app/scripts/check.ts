@@ -2,10 +2,10 @@ import "../src/data/items";
 import "../src/data/skills";
 import "../src/data/classes";
 import "../src/data/monsters";
-import "../src/data/land";
-import "../src/data/dungeons";
-import "../src/data/cities";
-import "../src/data/locations";
+import "../src/data/world/land";
+import "../src/data/world/dungeons";
+import "../src/data/world/cities";
+import "../src/data/world/locations";
 import "../src/data/quests";
 
 import { Item } from "../src/models/item";

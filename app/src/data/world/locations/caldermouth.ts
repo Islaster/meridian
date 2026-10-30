@@ -1,9 +1,9 @@
-import { Location, Npc } from "../../models/location";
-import { lienNotice, settleLien } from "../../systems/lien";
-import { LIEN } from "../money/lien";
-import { shelf } from "../items/forge";
-import { roaming } from "../../systems/presence";
-import { oaths, practice } from "../../systems/classes";
+import { Location, Npc } from "../../../models/location";
+import { lienNotice, settleLien } from "../../../systems/lien";
+import { LIEN } from "../../money/lien";
+import { shelf } from "../../items/forge";
+import { roaming } from "../../../systems/presence";
+import { oaths, practice } from "../../../systems/classes";
 
 //NPC
 new Npc(

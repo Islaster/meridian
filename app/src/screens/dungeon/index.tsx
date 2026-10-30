@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { useGame } from "../../state/gamecontext";
-import { Dungeon, type Room } from "../../data/land";
+import { Dungeon, type Room } from "../../data/world/land";
 import { Item } from "../../data/items";
 import { giveItem } from "../../systems/inventory";
 import { progress, narrate } from "../../systems/quests";
@@ -11,7 +11,7 @@ import Battle from "../battle";
 import Death from "../death";
 import { surveyed } from "../../systems/dungeon";
 import { Monster } from "../../data/monsters";
-import { Location } from "../../data/locations";
+import { Location } from "../../data/world/locations";
 import { type Spoils } from "../../systems/combat";
 import PlayerMenu from "../menu/playerMenu";
 import LevelUp from "../menu/levelUp";

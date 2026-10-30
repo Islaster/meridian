@@ -1,4 +1,4 @@
-import { Dungeon } from "../../models/dungeon";
+import { Dungeon } from "../../../models/dungeon";
 
 new Dungeon(
   "hall-cellar",

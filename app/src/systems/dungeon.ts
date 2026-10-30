@@ -1,8 +1,8 @@
-import { Dungeon, RANKS } from "../data/land";
+import { Dungeon, RANKS } from "../data/world/land";
 import type { GameState } from "../state/types";
 import { Monster } from "../data/monsters";
-import { City } from "../data/cities";
-import { Npc } from "../data/locations";
+import { City } from "../data/world/cities";
+import { Npc } from "../data/world/locations";
 
 export const surveyed = (s: GameState, d: Dungeon) =>
   !!d.manager || s.world.surveys.includes(d.id);

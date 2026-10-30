@@ -1,2 +1,2 @@
-import.meta.glob(["./*.ts", "!./index.ts"], { eager: true });
+import "./caldermouth";
 export * from "../models/location";

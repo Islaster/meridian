@@ -1,11 +1,11 @@
-import Opening from "./components/landing/opening";
+import Opening from "./landing/opening";
 import { useState } from "react";
-import { openingPlates } from "./components/landing/openingplates";
-import MainMenu from "./components/main-menu/mainmenu";
-import Creation from "./components/character-creation/creation";
-import Entrance from "./components/game/entrance";
-import Town from "./components/game/town";
-import DungeonScreen from "./components/game/dungeon";
+import { openingPlates } from "./landing/openingplates";
+import MainMenu from "./main-menu/mainmenu";
+import Creation from "./character-creation/creation";
+import Entrance from "./game/entrance";
+import Town from "./game/world";
+import DungeonScreen from "./game/dungeon";
 import { useGame } from "./state/gamecontext";
 
 function App() {

@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import type { GameState } from "./types";
 import { xpToNext } from "../systems/progression";
-import LedgerLine from "../components/shared/ledgerline";
+import LedgerLine from "../shared/ledgerline";
+import { RANKS } from "../data/land";
 
 const CATS = ["equipment", "consumables", "materials", "questItems"] as const;
 
@@ -16,6 +17,8 @@ export function diffToasts(prev: GameState, next: GameState): string[] {
   }
   const gold = next.bag.gold - prev.bag.gold;
   if (gold > 0) out.push(`《Coin》 +${gold}`);
+  if (next.player.rank > prev.player.rank)
+    out.push(`《Recorded》 Rank ${RANKS[next.player.rank]}`);
   let xp = next.player.xp - prev.player.xp;
   for (let l = prev.player.level; l < next.player.level; l++) xp += xpToNext(l); // xp spent crossing levels
   if (xp > 0) out.push(`《Growth》 +${xp}`);
@@ -58,7 +61,7 @@ export function Toasts({ state }: { state: GameState }) {
     >
       <style>{`@keyframes toastIn { from { opacity: 0; transform: translateY(-6px) } 15% { opacity: 1; transform: none } 85% { opacity: 1 } to { opacity: 0 } }`}</style>
       {toasts.map((t) => (
-        <LedgerLine>{t.text}</LedgerLine>
+        <LedgerLine key={t.id}>{t.text}</LedgerLine>
       ))}
     </div>
   );

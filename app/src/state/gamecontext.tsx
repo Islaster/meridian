@@ -1,54 +1,33 @@
-import { createContext, useContext, useState, type ReactNode } from "react";
-import {
-  player,
-  time,
-  bag,
-  location,
-  done,
-  quests,
-  offered,
-} from "./newGameState";
+import { useRef, useState, type ReactNode } from "react";
+import { GameContext, type Game } from "./context";
+import { newGameState } from "./newGameState";
 import type { GameState } from "./types";
 import { Toasts } from "./toasts";
+import TrackPrompt from "./trackprompt";
 
-interface GameContext {
-  state: GameState;
-  changeState: <K extends keyof GameState>(
-    prop: K,
-    value: GameState[K]
-  ) => void;
-}
-
-const Ctx = createContext<GameContext | null>(null);
+export { useGame } from "./context"; // existing imports keep working
 
 export function GameProvider({ children }: { children: ReactNode }) {
-  const [state, setState] = useState<GameState>({
-    player,
-    time,
-    bag,
-    world: location,
-    done,
-    quests,
-    offered,
-  });
+  const committed = useRef<GameState | null>(null);
+  const [state, setState] = useState<GameState>(newGameState);
 
-  function changeState<K extends keyof GameState>(
-    prop: K,
-    value: GameState[K]
-  ) {
+  // updater form on purpose: rest() queues several changeState calls, then commit — this sees them all
+  const commit = () =>
+    setState((prev) => {
+      committed.current = structuredClone(prev);
+      return prev;
+    });
+  const rollback = () => {
+    if (committed.current) setState(structuredClone(committed.current));
+  };
+  const changeState: Game["changeState"] = (prop, value) =>
     setState((prev) => ({ ...prev, [prop]: value }));
-    if (prop === "done") console.log("write done:", value);
-  }
+
   return (
-    <Ctx.Provider value={{ state, changeState }}>
+    <GameContext.Provider value={{ state, changeState, commit, rollback }}>
       {children}
       <Toasts state={state} />
-    </Ctx.Provider>
+      <TrackPrompt />
+    </GameContext.Provider>
   );
-}
-
-export function useGame(): GameContext {
-  const v = useContext(Ctx);
-  if (!v) throw new Error("useGame must be used inside GameProvider");
-  return v;
 }

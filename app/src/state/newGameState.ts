@@ -1,5 +1,6 @@
 import { type GameState } from "./types";
-import { workshopKey, sealedLetter } from "../data/items/quest";
+import { hallKey, sealedLetter } from "../data/items/quest";
+
 export const time: GameState["time"] = {
   day: "monday",
   hour: 8,
@@ -26,6 +27,11 @@ export const player: GameState["player"] = {
   skills: {},
   hp: 20,
   maxHp: 20,
+  mp: 0,
+  maxMp: 0,
+  rank: 0,
+  proficiency: {},
+  uses: {},
 };
 
 export const bag: GameState["bag"] = {
@@ -34,21 +40,37 @@ export const bag: GameState["bag"] = {
   materials: [],
   consumables: [],
   questItems: [
-    { name: workshopKey.name, qty: 1 },
+    { name: hallKey.name, qty: 1 },
     { name: sealedLetter.name, qty: 1 },
   ],
 };
 
-export const location: GameState["world"] = {
-  area: "coast-road",
-  region: "starterRegion",
-  town: "starterTown",
-};
-
 export const quests: GameState["quests"] = {
-  "the-inheritance": 0,
+  "find-the-hall": { status: "taken", tracked: true },
 };
 
 export const done: GameState["done"] = [];
 
-export const offered: GameState["offered"] = [];
+export const location: GameState["world"] = {
+  area: "coast-road",
+  town: "caldermouth",
+  region: "meridian-coast",
+  surveys: [],
+};
+
+export const standing: GameState["standing"] = { "charter-guild": 0 };
+
+export const counters: GameState["counters"] = {};
+export const notices: GameState["notices"] = [];
+
+export const newGameState: GameState = {
+  time,
+  player,
+  bag,
+  quests,
+  done,
+  world: location,
+  standing,
+  counters,
+  notices,
+};

@@ -1,5 +1,5 @@
 import { useTown } from "./usetown";
-import { wrap } from "../../shared/styles";
+import { wrap } from "../../ui/styles";
 import Header from "./header";
 import Scene from "./scene";
 import Exits from "./exits";

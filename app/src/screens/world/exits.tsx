@@ -1,5 +1,5 @@
 import type { Town } from "./usetown";
-import { ptr, dim, col } from "../../shared/styles";
+import { ptr, dim, col } from "../../ui/styles";
 import { Location } from "../../data/locations";
 import { Dungeon } from "../../data/land";
 import { isOpen, dur } from "../../systems/time";

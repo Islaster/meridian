@@ -4,7 +4,7 @@ import { Item } from "../../data/items";
 import type { Shop as ShopDef } from "../../data/locations";
 import { buy, sell, itemByName } from "../../systems/inventory";
 import { SERIF, MenuButton } from "../../ui/cards";
-import LedgerLine from "../../shared/ledgerline";
+import LedgerLine from "../../ui/ledgerline";
 
 const row = {
   display: "flex",

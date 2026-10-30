@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import type { GameState } from "./types";
+import type { GameState } from "../state/types";
 import { xpToNext } from "../systems/progression";
-import LedgerLine from "../shared/ledgerline";
+import LedgerLine from "./ledgerline";
 import { RANKS } from "../data/land";
 
 const CATS = ["equipment", "consumables", "materials", "questItems"] as const;

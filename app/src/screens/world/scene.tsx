@@ -1,5 +1,5 @@
 import type { Town } from "./usetown";
-import { para } from "../../shared/styles";
+import { para } from "../../ui/styles";
 import { describeNow } from "../../systems/presence";
 import { GLYPH } from "../../systems/quests";
 import { Quest } from "../../data/quests";

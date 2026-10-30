@@ -1,5 +1,5 @@
 import type { Town } from "./usetown";
-import { ptr, dim, col, hollow } from "../../shared/styles";
+import { ptr, dim, col, hollow } from "../../ui/styles";
 import { Npc } from "../../data/locations";
 import { present } from "../../systems/presence";
 import { owned, buildable, shortfall, costText } from "../../systems/property";

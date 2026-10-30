@@ -2,8 +2,8 @@ import { useRef, useState, type ReactNode } from "react";
 import { GameContext, type Game } from "./context";
 import { newGameState } from "./newGameState";
 import type { GameState } from "./types";
-import { Toasts } from "./toasts";
-import TrackPrompt from "./trackprompt";
+import { Toasts } from "../ui/toasts";
+import TrackPrompt from "../ui/trackprompt";
 
 export { useGame } from "./context"; // existing imports keep working
 

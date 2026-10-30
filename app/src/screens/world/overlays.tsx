@@ -5,8 +5,8 @@ import GuildBoard from "../board";
 import QuestOffer from "../menu/questoffers";
 import QuestComplete from "./questcomplete";
 import LevelUp from "../menu/levelUp";
-import { para, ptr } from "../../shared/styles";
-import Coachmark from "../../shared/coachmark";
+import { para, ptr } from "../../ui/styles";
+import Coachmark from "../../ui/coachmark";
 import Forge from "../forge";
 
 export default function Overlays({ t }: { t: Town }) {

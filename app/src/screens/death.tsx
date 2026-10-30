@@ -1,7 +1,7 @@
 import { useState } from "react";
-import Passage from "../shared/passage";
+import Passage from "../ui/passage";
 import { SERIF, MenuButton } from "../ui/cards";
-import LedgerLine from "../shared/ledgerline";
+import LedgerLine from "../ui/ledgerline";
 
 const LINES = [
   "The world goes out.",

@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useGame } from "../../state/context";
 import { SERIF, MenuButton } from "../../ui/cards";
-import { ptr, dim, label, para } from "../../shared/styles";
-import Gauge from "../../shared/gauge";
+import { ptr, dim, label, para } from "../../ui/styles";
+import Gauge from "../../ui/gauge";
 import {
   recipes,
   missing,

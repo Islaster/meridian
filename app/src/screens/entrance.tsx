@@ -1,6 +1,6 @@
 import { useState } from "react";
-import Passage from "../shared/passage";
-import SkipButton from "../shared/skipbutton";
+import Passage from "../ui/passage";
+import SkipButton from "../ui/skipbutton";
 import { SERIF, MenuButton } from "../ui/cards";
 import { useGame } from "../state/gamecontext";
 import { giveItem, equip } from "../systems/inventory";

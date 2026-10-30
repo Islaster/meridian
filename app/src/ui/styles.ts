@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import { SERIF } from "../ui/cards";
+import { SERIF } from "./cards";
 
 export const wrap: CSSProperties = {
   minHeight: "100vh",

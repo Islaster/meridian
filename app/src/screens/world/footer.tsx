@@ -1,5 +1,5 @@
 import type { Town } from "./usetown";
-import { ptr } from "../../shared/styles";
+import { ptr } from "../../ui/styles";
 import { allowed } from "../../systems/tutorial";
 
 export default function Footer({ t }: { t: Town }) {

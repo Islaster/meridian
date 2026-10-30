@@ -1,4 +1,4 @@
-import { Quest } from "../../models/quest";
+import { Quest } from "../../../models/quest";
 
 new Quest(
   "wolves-on-the-kiln-road",

@@ -8,13 +8,13 @@ import "../src/data/cities";
 import "../src/data/locations";
 import "../src/data/quests";
 
-import { Item } from "../src/data/models/item";
-import { Skill } from "../src/data/models/skill";
-import { PlayerClass } from "../src/data/models/class";
-import { Monster } from "../src/data/models/monster";
-import { Dungeon } from "../src/data/models/dungeon";
-import { Location, Npc } from "../src/data/models/location";
-import { Quest } from "../src/data/models/quest";
+import { Item } from "../src/models/item";
+import { Skill } from "../src/models/skill";
+import { PlayerClass } from "../src/models/class";
+import { Monster } from "../src/models/monster";
+import { Dungeon } from "../src/models/dungeon";
+import { Location, Npc } from "../src/models/location";
+import { Quest } from "../src/models/quest";
 import { SPOTS } from "../src/data/gather";
 
 const errors: string[] = [];

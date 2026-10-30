@@ -1,6 +1,6 @@
-import { type GameState } from "../../state/types";
+import { type GameState } from "../state/types";
 import type { Requirement } from "./quest";
-import { HOP } from "../../systems/time";
+import { HOP } from "../systems/time";
 import { type Craft } from "./item";
 
 export interface Exit {

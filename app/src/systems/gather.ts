@@ -1,6 +1,6 @@
 import { notify } from "./notices";
 import { SPOTS, spot, type Spot } from "../data/gather";
-import type { Action } from "../data/models/location";
+import type { Action } from "../models/location";
 import { type GameState } from "../state/types";
 
 const hash = (t: string) =>

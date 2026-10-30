@@ -1,4 +1,4 @@
-import type { Requirement } from "./models/quest";
+import type { Requirement } from "../models/quest";
 
 export type Spot = {
   id: string; // action id

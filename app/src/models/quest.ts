@@ -1,4 +1,4 @@
-import type { GameState } from "../../state/types";
+import type { GameState } from "../state/types";
 import { type Placed } from "./location";
 
 export type QuestKind = "main" | "side" | "bounty" | "mission";

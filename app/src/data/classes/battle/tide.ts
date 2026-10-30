@@ -1,4 +1,4 @@
-import { PlayerClass } from "../../models/class";
+import { PlayerClass } from "../../../models/class";
 
 // ── The tide · Orrin's discipline ──────────────────────────────────────────
 export const wader = new PlayerClass("wader", "Wader", "inferiority", {

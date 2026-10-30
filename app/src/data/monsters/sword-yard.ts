@@ -1,4 +1,4 @@
-import { Monster } from "../models/monster";
+import { Monster } from "../../models/monster";
 
 // Ira's intake trial. Near archetype, unfleeable like any boss (battle doc), no drops, no coin.
 new Monster(

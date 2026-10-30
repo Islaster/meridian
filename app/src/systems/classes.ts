@@ -1,5 +1,5 @@
 import type { GameState } from "../state/types";
-import type { Action } from "../data/models/location";
+import type { Action } from "../models/location";
 import { PlayerClass } from "../data/classes";
 import { PRACTICE_PROF, PRACTICE_CAP } from "./time";
 import { Skill } from "../data/skills";

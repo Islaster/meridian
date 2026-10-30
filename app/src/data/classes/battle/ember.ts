@@ -1,4 +1,4 @@
-import { PlayerClass } from "../../models/class";
+import { PlayerClass } from "../../../models/class";
 
 // ── The ember · Dessa's discipline ─────────────────────────────────────────
 export const stoker = new PlayerClass("stoker", "Stoker", "inferiority", {

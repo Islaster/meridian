@@ -1,4 +1,4 @@
-import { Weapon } from "../models/item";
+import { Weapon } from "../../models/item";
 
 export const walkingStick = new Weapon(
   "walking-stick",

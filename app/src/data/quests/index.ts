@@ -1,2 +1,2 @@
 import "./meridian-coast";
-export * from "../models/quest";
+export * from "../../models/quest";

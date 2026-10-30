@@ -1,4 +1,4 @@
-import { Material } from "../models/item";
+import { Material } from "../../models/item";
 
 export const kelpFiber = new Material("kelp-fiber", "Kelp fiber", "plant", 4);
 export const saltCrystal = new Material(

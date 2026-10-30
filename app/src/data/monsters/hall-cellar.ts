@@ -1,4 +1,4 @@
-import { Monster } from "../models/monster";
+import { Monster } from "../../models/monster";
 
 new Monster(
   "cellar-rat",

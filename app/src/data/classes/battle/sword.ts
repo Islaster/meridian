@@ -1,4 +1,4 @@
-import { PlayerClass } from "../../models/class";
+import { PlayerClass } from "../../../models/class";
 
 // ── The sword · Ira's discipline ───────────────────────────────────────────
 export const solider = new PlayerClass("soldier", "Soldier", "inferiority", {

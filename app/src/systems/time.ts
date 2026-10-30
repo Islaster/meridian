@@ -1,5 +1,5 @@
 import type { GameState } from "../state/types";
-import type { Hours } from "../data/models/location";
+import type { Hours } from "../models/location";
 
 type Time = GameState["time"];
 const WEEK = [

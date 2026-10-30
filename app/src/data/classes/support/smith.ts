@@ -1,4 +1,4 @@
-import { PlayerClass } from "../../models/class";
+import { PlayerClass } from "../../../models/class";
 
 // ── The forge ──────────────────────────────────────────────────────────────
 export const apprenticeSmith = new PlayerClass(

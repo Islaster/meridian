@@ -1,4 +1,4 @@
-import { Consumable } from "../models/item";
+import { Consumable } from "../../models/item";
 
 export const minorPotion = new Consumable(
   "minor-potion",

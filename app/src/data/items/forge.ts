@@ -9,8 +9,8 @@ import {
   type WeaponType,
   type ArmorGroup,
   type Craft,
-} from "../models/item";
-import { METALS, type Row } from "../models/metal";
+} from "../../models/item";
+import { METALS, type Row } from "../../models/metal";
 
 const WEAPONS: Record<
   string,

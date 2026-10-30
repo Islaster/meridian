@@ -1,4 +1,4 @@
-import { Skill } from "../models/skill";
+import { Skill } from "../../models/skill";
 
 // ── Scout · foundational ───────────────────────────────────────────────────
 new Skill("snap-shot", "Snap shot", "bow", {

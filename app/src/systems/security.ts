@@ -1,5 +1,5 @@
 import { Dungeon, type Guard } from "../data/land";
-import { City } from "../data/models/city";
+import { City } from "../models/city";
 
 const MATRIX: Guard[][] = [
   // cent: 1  2  3  4  5

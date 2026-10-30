@@ -1,5 +1,5 @@
 import type { GameState } from "../state/types";
-import { Item, GRADES, type Grade, type Craft } from "../data/models/item";
+import { Item, GRADES, type Grade, type Craft } from "../models/item";
 import { variantId } from "../data/items/forge";
 import { PlayerClass } from "../data/classes";
 import { countItem, takeItem, giveItem } from "./inventory";

@@ -1,4 +1,4 @@
-import { Skill } from "../models/skill";
+import { Skill } from "../../models/skill";
 
 // ── Stoker · foundational ──────────────────────────────────────────────────
 new Skill("spark", "Spark", "ember", {

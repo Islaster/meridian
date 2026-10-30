@@ -1,4 +1,4 @@
-import { Location, Npc } from "../models/location";
+import { Location, Npc } from "../../models/location";
 import { lienNotice, settleLien } from "../../systems/lien";
 import { LIEN } from "../money/lien";
 import { shelf } from "../items/forge";

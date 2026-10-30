@@ -6,4 +6,4 @@ import "./consumables";
 import "./throwable";
 import "./quest";
 import "./forge";
-export * from "../models/item";
+export * from "../../models/item";

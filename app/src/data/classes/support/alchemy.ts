@@ -1,4 +1,4 @@
-import { PlayerClass } from "../../models/class";
+import { PlayerClass } from "../../../models/class";
 
 export const apprenticeAlchemist = new PlayerClass(
   "apprentice-alchemist",

@@ -1,4 +1,4 @@
-import { PlayerClass } from "../../models/class";
+import { PlayerClass } from "../../../models/class";
 
 export const scout = new PlayerClass("scout", "Scout", "inferiority", {
   lineage: "battle",

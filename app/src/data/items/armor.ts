@@ -1,4 +1,4 @@
-import { Armor } from "../models/item";
+import { Armor } from "../../models/item";
 
 export const travelerClothes = new Armor(
   "traveler-clothes",

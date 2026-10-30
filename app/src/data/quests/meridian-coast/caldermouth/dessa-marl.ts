@@ -1,4 +1,4 @@
-import { Quest } from "../../../models/quest";
+import { Quest } from "../../../../models/quest";
 import { learn } from "../../../../systems/classes";
 
 new Quest(

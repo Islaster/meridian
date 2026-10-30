@@ -4,7 +4,7 @@ import {
   type Action,
   type Location,
   type Placed,
-} from "../data/models/location";
+} from "../models/location";
 import { Quest } from "../data/quests";
 import { spotActions } from "./gather";
 

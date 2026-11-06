@@ -9,18 +9,13 @@ import DungeonScreen from "./screens/dungeon";
 import { useGame } from "./state/gamecontext";
 
 function App() {
-  const [screen, setScreen] = useState("");
+  const [screen, setScreen] = useState<"" | "start" | "entrance" | "game">("");
   const { state } = useGame();
   return (
     <>
       {screen === "" && (
         <Opening plates={openingPlates} pixelScale={4}>
-          <MainMenu
-            onNewGame={() => setScreen("start")}
-            onLoadGame={() => setScreen("load")}
-            onContinue={() => setScreen("continue")}
-            onSettings={() => setScreen("settings")}
-          />
+          <MainMenu onNewGame={() => setScreen("start")} />
         </Opening>
       )}
       {screen === "start" && <Creation onDone={() => setScreen("entrance")} />}

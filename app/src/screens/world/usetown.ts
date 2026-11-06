@@ -8,7 +8,7 @@ import {
   type Upgrade,
 } from "../../data/world/locations";
 import { Dungeon } from "../../data/world/land";
-import { advance, sleep, timeNote, WEARY } from "../../systems/time";
+import { advance, timeNote } from "../../systems/time";
 import {
   progress,
   signals,
@@ -21,12 +21,12 @@ import { lend, giveItem } from "../../systems/inventory";
 import { present, roaming } from "../../systems/presence";
 import { build } from "../../systems/property";
 
-import { type Spoils, refresh } from "../../systems/combat";
+import { type Spoils } from "../../systems/combat";
 import type { GameState } from "../../state/types";
 import type { Note } from "../../systems/types";
-import { PlayerClass } from "../../data/classes";
 import { leave } from "../../systems/classes";
 import { current, dismiss } from "../../systems/tutorial";
+import { night } from "../../systems/night";
 
 export type Tab = "inventory" | "character" | "skills" | "journal";
 
@@ -48,11 +48,9 @@ export function useTown() {
     text: string;
     go: () => void;
   } | null>(null);
-  const tut = current(state);
-  const tutorial =
-    tut && !state.done.includes(`tut:${tut.step.id}`) ? tut : null;
   const cur = current(state);
-  const tutorialSeen = !!cur && state.done.includes(`tut:${cur.step.id}`);
+  const tutorial =
+    cur && !state.done.includes(`tut:${cur.step.id}`) ? cur : null; // the step, until "Got it"
   const dismissTutorial = () => cur && apply(dismiss(state, cur.step));
   const sig = signals(state);
   const apply = (n: GameState) =>
@@ -72,7 +70,12 @@ export function useTown() {
       return apply({
         ...state,
         time,
-        world: { ...state.world, dungeon: to, room: Dungeon.get(to).entrance },
+        world: {
+          ...state.world,
+          dungeon: to,
+          room: Dungeon.get(to).entrance,
+          delve: 0,
+        },
       });
     setLine(null);
     setOffer(null);
@@ -134,8 +137,9 @@ export function useTown() {
   };
   const act = (a: Action) => {
     before.current = state;
-    if (a.oath && state.done.includes("sworn")) {
-      const cur = PlayerClass.get(state.player.class!).master; // the current master is the current class's
+    const sworn = state.done.find((f) => f.startsWith("sworn:"))?.slice(6);
+    if (a.oath && sworn) {
+      const cur = sworn;
       return setConfirm({
         text: `You're sworn to ${
           Npc.get(cur).name
@@ -176,44 +180,14 @@ export function useTown() {
     const tn = timeNote(state.time.hour, t.hour);
     if (tn) setNotes([{ kind: "story", text: tn }]);
   };
-  const rest = () => {
-    const late = state.time.hour < 6 || state.time.hour >= 24; // past midnight
-    let player = {
-      ...state.player,
-      hp: state.player.maxHp,
-      mp: state.player.maxMp,
-    };
-    // yesterday's weariness lifts
-    if (player.weary) {
-      const { stat, amount } = player.weary;
-      player = {
-        ...player,
-        stats: { ...player.stats, [stat]: player.stats[stat] + amount },
-        weary: undefined,
-      };
-    }
-    let note: Note | null = null;
-    if (late) {
-      const [stat, value] = Object.entries(player.stats).sort(
-        (a, b) => b[1] - a[1]
-      )[0];
-      const amount = Math.max(1, Math.round(value * WEARY));
-      player = {
-        ...player,
-        stats: { ...player.stats, [stat]: value - amount },
-        weary: { stat, amount },
-      };
-      note = {
-        kind: "story",
-        text: `You slept past midnight and it shows. ${stat.toUpperCase()} is down ${amount} until you sleep properly.`,
-      };
-    }
-    changeState("player", player);
-    changeState("time", sleep(state.time));
-    changeState("done", refresh(state.done, state.time.dayId + 1));
+  // the night, from here: a bed if the place has one, the ground if midnight caught you out
+  const sleepNow = (rough: boolean) => {
+    const r = night(state, rough ? "rough" : "bed", loc.name.toLowerCase());
+    apply(r.state);
     commit();
-    setNotes(note ? [note] : []);
+    setNotes(r.notes);
   };
+  const rest = () => sleepNow(false);
   const clearLevelUp = () =>
     setNotes(notes.filter((n) => n.kind !== "levelup"));
 
@@ -237,6 +211,10 @@ export function useTown() {
       fight: r.monsters,
     });
   }, [state.world.area, state.time.hour]); // eslint-disable-line react-hooks/exhaustive-deps
+  // midnight ends the day wherever you are: in a bed, late; anywhere else, on the ground
+  useEffect(() => {
+    if (state.time.hour >= 24 && !fight && !dead) sleepNow(!loc.canRest);
+  }, [state.time.hour, fight, dead]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return {
     state,
@@ -272,11 +250,8 @@ export function useTown() {
     clearLevelUp,
     confirm,
     setConfirm,
-    tut,
     tutorial,
     dismissTutorial,
-    cur,
-    tutorialSeen,
     bench,
     setBench,
   };

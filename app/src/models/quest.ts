@@ -1,5 +1,7 @@
 import type { GameState } from "../state/types";
 import { type Placed } from "./location";
+import { register } from "./registry";
+import { type Craft } from "./item";
 
 export type QuestKind = "main" | "side" | "bounty" | "mission";
 export type Condition =
@@ -28,6 +30,8 @@ export interface Requirement {
   standing?: Record<string, number>; // faction → minimum
   not?: string[];
   stats?: Record<string, number>;
+  level?: number;
+  craft?: Craft;
 }
 export interface Reward {
   xp?: number;
@@ -108,7 +112,7 @@ export class Quest {
     this.track = o.track;
     this.onComplete = o.onComplete;
     this.via = o.via;
-    this.actions = o.actions ?? [];
-    Quest.registry.set(id, this);
+    this.actions = (o.actions ?? []).map((a) => ({ quest: this.id, ...a }));
+    register(Quest.registry, "quest", id, this);
   }
 }

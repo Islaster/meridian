@@ -1,20 +1,11 @@
 import { Location, Npc } from "../data/world/locations";
 import { isOpen } from "./time";
+import { seed } from "./seed";
 import type { GameState } from "../state/types";
-
-// FNV-1a → 0–1. Same string, same number, forever.
-const hash = (str: string) => {
-  let h = 2166136261;
-  for (const c of str) {
-    h ^= c.charCodeAt(0);
-    h = Math.imul(h, 16777619);
-  }
-  return (h >>> 0) / 4294967296;
-};
 
 // Is this place's roam out today? Dealt by the day, so it's the same answer on every replay.
 export const roaming = (s: GameState, loc: Location) =>
-  !!loc.roam && hash(`${s.time.dayId}:roam:${loc.id}`) < loc.roam.chance;
+  !!loc.roam && seed(`${s.time.dayId}:roam:${loc.id}`) < loc.roam.chance;
 
 export const locationOfNpc = (npc: string) =>
   [...Location.registry.values()].find((l) => l.npcs.includes(npc))?.id;

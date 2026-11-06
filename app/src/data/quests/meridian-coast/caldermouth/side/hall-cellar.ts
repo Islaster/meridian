@@ -1,4 +1,4 @@
-import { Quest } from "../../../../models/quest";
+import { Quest } from "../../../../../models/quest";
 
 new Quest(
   "something-in-the-cellar",

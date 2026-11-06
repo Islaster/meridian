@@ -7,10 +7,10 @@ export default function LedgerLine({
   return (
     <div
       style={{
-        font: `13px ${SERIF}`,
+        font: `15px ${SERIF}`,
         letterSpacing: "0.1em",
-        color: "rgba(200,212,255,0.85)",
-        borderLeft: "1px solid rgba(200,212,255,0.5)",
+        color: "rgba(233,236,242,0.9)",
+        borderLeft: "1px solid rgba(233,236,242,0.5)",
         padding: "2px 0 2px 12px",
       }}
     >

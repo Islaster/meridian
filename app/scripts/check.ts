@@ -13,45 +13,35 @@ import { Skill } from "../src/models/skill";
 import { PlayerClass } from "../src/models/class";
 import { Monster } from "../src/models/monster";
 import { Dungeon } from "../src/models/dungeon";
-import { Location, Npc } from "../src/models/location";
-import { Quest } from "../src/models/quest";
+import { Location, Npc, type Action } from "../src/models/location";
+import { Quest, type Target } from "../src/models/quest";
 import { SPOTS } from "../src/data/gather";
 
 const errors: string[] = [];
 const need = (ok: boolean, msg: string) => ok || errors.push(msg);
 const place = (id: string) =>
   Location.registry.has(id) || Dungeon.registry.has(id);
-let failures = 0;
-const fail = (msg: string) => {
-  failures++;
-  console.error(`✗ ${msg}`);
-};
 
-const exists = (get: (id: string) => unknown, id: string) => {
-  try {
-    get(id);
-    return true;
-  } catch {
-    return false;
-  }
-};
-const placeExists = (id: string) =>
-  exists((i) => Location.get(i), id) || exists((i) => Dungeon.get(i), id);
+// every pointer in the game, wherever it's declared, with where it stands
+const actions: { a: Action; at: string; owner: string }[] = [
+  ...[...Location.registry.values()].flatMap((l) =>
+    l.actions.map((a) => ({ a, at: l.id, owner: `location ${l.id}` }))
+  ),
+  ...[...Quest.registry.values()].flatMap((q) =>
+    q.actions.map((a) => ({ a, at: a.at, owner: `quest ${q.id}` }))
+  ),
+  ...[...Npc.registry.values()].flatMap((n) =>
+    n.actions.map((a) => ({ a, at: a.at, owner: `npc ${n.id}` }))
+  ),
+];
+const actionIds = [...actions.map((x) => x.a.id), ...SPOTS.map((sp) => sp.id)];
 
+// ── places ────────────────────────────────────────────────────────────────
 for (const l of Location.registry.values()) {
   for (const e of l.exits)
     need(place(e.to), `location ${l.id}: exit to unknown "${e.to}"`);
   for (const n of l.npcs)
     need(Npc.registry.has(n), `location ${l.id}: unknown npc "${n}"`);
-  for (const a of l.actions) {
-    for (const m of a.fight ?? [])
-      need(Monster.registry.has(m), `action ${a.id}: unknown monster "${m}"`);
-    if (a.quest)
-      need(
-        Quest.registry.has(a.quest),
-        `action ${a.id}: unknown quest "${a.quest}"`
-      );
-  }
   if (l.requires)
     need(
       Item.registry.has(l.requires),
@@ -59,6 +49,24 @@ for (const l of Location.registry.values()) {
     );
 }
 
+// ── pointers ──────────────────────────────────────────────────────────────
+for (const { a, at, owner } of actions) {
+  need(place(at), `${owner}: action "${a.id}" stands in unknown place "${at}"`);
+  for (const m of a.fight ?? [])
+    need(Monster.registry.has(m), `action ${a.id}: unknown monster "${m}"`);
+  if (a.quest)
+    need(
+      Quest.registry.has(a.quest),
+      `action ${a.id}: unknown quest "${a.quest}"`
+    );
+}
+for (const id of new Set(actionIds))
+  need(
+    actionIds.filter((x) => x === id).length === 1,
+    `action id "${id}" is used more than once`
+  );
+
+// ── people ────────────────────────────────────────────────────────────────
 for (const n of Npc.registry.values()) {
   for (const q of n.offers ?? [])
     need(Quest.registry.has(q), `npc ${n.id}: offers unknown quest "${q}"`);
@@ -75,6 +83,7 @@ for (const n of Npc.registry.values()) {
       );
 }
 
+// ── land ──────────────────────────────────────────────────────────────────
 for (const d of Dungeon.registry.values()) {
   for (const m of d.posting.monsters)
     need(Monster.registry.has(m), `dungeon ${d.id}: unknown monster "${m}"`);
@@ -102,6 +111,7 @@ for (const d of Dungeon.registry.values()) {
   }
 }
 
+// ── monsters ──────────────────────────────────────────────────────────────
 for (const m of Monster.registry.values())
   for (const dr of m.drops)
     need(
@@ -109,6 +119,7 @@ for (const m of Monster.registry.values())
       `monster ${m.id}: unknown drop "${dr.item}"`
     );
 
+// ── classes ───────────────────────────────────────────────────────────────
 for (const c of PlayerClass.registry.values()) {
   if (c.master)
     need(
@@ -124,6 +135,32 @@ for (const c of PlayerClass.registry.values()) {
     );
 }
 
+// ── quests ────────────────────────────────────────────────────────────────
+const target = (q: Quest, t: Target): void => {
+  if ("npc" in t)
+    need(
+      Npc.registry.has(t.npc),
+      `quest ${q.id}: tracks unknown npc "${t.npc}"`
+    );
+  else if ("place" in t)
+    need(place(t.place), `quest ${q.id}: tracks unknown place "${t.place}"`);
+  else if ("dungeon" in t)
+    need(
+      Dungeon.registry.has(t.dungeon),
+      `quest ${q.id}: tracks unknown dungeon "${t.dungeon}"`
+    );
+  else if ("action" in t)
+    need(
+      actionIds.includes(t.action),
+      `quest ${q.id}: tracks unknown action "${t.action}"`
+    );
+  else if ("any" in t) t.any.forEach((x) => target(q, x));
+  else {
+    const id = "board" in t ? t.board : t.quest;
+    need(Quest.registry.has(id), `quest ${q.id}: tracks unknown quest "${id}"`);
+  }
+};
+
 for (const q of Quest.registry.values()) {
   for (const n of [q.next ?? []].flat())
     need(Quest.registry.has(n), `quest ${q.id}: next unknown "${n}"`);
@@ -133,6 +170,12 @@ for (const q of Quest.registry.values()) {
     ...(q.reward.items ?? []),
   ])
     need(Item.registry.has(i), `quest ${q.id}: unknown item "${i}"`);
+  for (const c of [
+    ...(q.visible?.complete ?? []),
+    ...(q.acceptable?.complete ?? []),
+  ])
+    need(Quest.registry.has(c), `quest ${q.id}: requires unknown quest "${c}"`);
+  for (const t of q.track ?? []) target(q, t);
   const c = q.complete;
   if (c.kind === "talk")
     need(
@@ -149,6 +192,11 @@ for (const q of Quest.registry.values()) {
       Dungeon.registry.has(c.dungeon),
       `quest ${q.id}: clears unknown "${c.dungeon}"`
     );
+  if (c.kind === "have")
+    need(
+      Item.registry.has(c.item),
+      `quest ${q.id}: wants unknown item "${c.item}"`
+    );
   if (c.kind === "flag")
     need(!/\s/.test(c.flag), `quest ${q.id}: flag "${c.flag}" has whitespace`);
   for (const f of [
@@ -159,6 +207,7 @@ for (const q of Quest.registry.values()) {
     need(!/\s/.test(f), `quest ${q.id}: flag "${f}" has whitespace`);
 }
 
+// ── items & spots ─────────────────────────────────────────────────────────
 for (const it of Item.registry.values())
   for (const m of it.recipe?.materials ?? [])
     need(
@@ -166,15 +215,18 @@ for (const it of Item.registry.values())
       `item ${it.id}: recipe wants unknown "${m.id}"`
     );
 for (const sp of SPOTS) {
-  Item.get(sp.material); // throws on an unknown id
-  if (!placeExists(sp.at)) fail(`spot ${sp.id}: unknown place ${sp.at}`); // the lookup/report helpers check.ts already uses
+  need(
+    Item.registry.has(sp.material),
+    `spot ${sp.id}: unknown material "${sp.material}"`
+  );
+  for (const at of [sp.at].flat())
+    need(place(at), `spot ${sp.id}: unknown place "${at}"`);
 }
 
 if (errors.length) {
   console.error(errors.join("\n"));
   process.exit(1);
 }
-if (failures) process.exit(1);
 console.log(
   `ok · ${Quest.registry.size} quests · ${Location.registry.size} places · ${Dungeon.registry.size} land · ${Monster.registry.size} monsters · ${Item.registry.size} items`
 );

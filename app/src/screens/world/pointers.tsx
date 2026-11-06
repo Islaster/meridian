@@ -29,6 +29,7 @@ export default function Pointers({ t }: { t: Town }) {
         return (
           <button
             key={a.id}
+            data-tut={sig.actions[a.id]?.size ? "marked" : undefined}
             style={{ ...ptr, opacity: short || !ok ? 0.4 : 1 }}
             disabled={short || !ok}
             onClick={() => t.act(a)}

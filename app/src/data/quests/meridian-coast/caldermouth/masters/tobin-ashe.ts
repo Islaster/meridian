@@ -1,20 +1,27 @@
-import { Quest } from "../../../../models/quest";
+import { Quest } from "../../../../../models/quest";
+import { line } from "./line";
 
-new Quest(
-  "meet-tobin-ashe",
-  "side",
-  "Meet Tobin Ashe",
-  "Tobin Ashe keeps the forge on harbor row. Go and hear the terms.",
-  { kind: "talk", npc: "tobin-ashe" },
-  {
-    chain: "Iron that holds",
-    visible: { complete: ["the-tide-cave"] },
-    set: ["met:tobin-ashe"],
-    narration:
-      '"Osric\'s." Tobin looks at your hands, then at the bar on the anvil. "A smith is someone who can make a thing that doesn\'t break. Everything else is talk."',
-    next: "trial-tobin-ashe",
-  }
-);
+line({
+  npc: "tobin-ashe",
+  short: "Tobin",
+  where: "the forge on harbor row",
+  chain: "Iron that holds",
+  className: "Apprentice smith",
+  meet: '"Osric\'s." Tobin looks at your hands, then at the bar on the anvil. "A smith is someone who can make a thing that doesn\'t break. Everything else is talk."',
+  noticed:
+    'Tobin looks up from the bar for the first time. "You keep coming. Fine. The kilns owe me a sack."',
+  errand: {
+    name: "Charcoal for the forge",
+    objective:
+      "Bring Tobin a sack of charcoal — the kilns up the road rake it out.",
+    complete: { kind: "have", item: "charcoal" },
+    take: ["charcoal"],
+    narration: "The sack is heavier than it looks and leaves your hands black.",
+  },
+  back: 'Tobin weighs it in one hand and tips it into the bin. "It\'ll burn." That is the whole thank-you.',
+  oath: '"Apprentice," Tobin says. "You carry, you pump, you watch. Talk when the iron does."',
+});
+
 new Quest(
   "trial-tobin-ashe",
   "side",

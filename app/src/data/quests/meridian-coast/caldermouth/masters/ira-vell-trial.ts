@@ -1,4 +1,4 @@
-import { Quest } from "../../../../models/quest";
+import { Quest } from "../../../../../models/quest";
 
 new Quest(
   "the-yard-trial",
@@ -12,7 +12,7 @@ new Quest(
     narration:
       'Ira doesn\'t say you passed. He puts two fingers against your sternum, and something under them that has been shut your whole life opens. Breath goes in further than it has ever gone. "Ki," he says. "It was always there. Now it\'s yours." He looks toward the harbor. "Osric\'s hall. I\'ll want to see it, when it\'s worth seeing."',
     next: "first-forms",
-    visible: { complete: ["meet-the-master"] },
+    visible: { complete: ["meet-ira-vell"] },
   }
 );
 

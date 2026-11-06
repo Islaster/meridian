@@ -1,5 +1,6 @@
 import type { WeaponType } from "./item";
 import { type Element } from "./class";
+import { register } from "./registry";
 
 interface SkillOpts {
   cost: number;
@@ -38,6 +39,6 @@ export class Skill {
     this.heal = opts.heal ?? 0;
     this.describe = opts.describe;
     this.family = opts.family;
-    Skill.registry.set(id, this);
+    register(Skill.registry, "skill", id, this);
   }
 }

@@ -1,46 +1,71 @@
 import { Weapon } from "../../models/item";
 
+// starting junk · tier 0
 export const walkingStick = new Weapon(
   "walking-stick",
   "Walking stick",
   "club",
   2
-);
-export const beltKnife = new Weapon("belt-knife", "Belt knife", "sword", 3);
+).made("fletch", [
+  { id: "driftwood", qty: 1 },
+  { id: "kelp-fiber", qty: 1 },
+]);
+export const beltKnife = new Weapon(
+  "belt-knife",
+  "Belt knife",
+  "sword",
+  3
+).made("smith", [
+  { id: "copper", qty: 1 },
+  { id: "cloth", qty: 1 },
+  { id: "charcoal", qty: 1 },
+]);
 export const rustyBlade = new Weapon("rusty-blade", "Rusty blade", "sword", 4, {
   price: 15,
-});
-export const huntingBow = new Weapon("hunting-bow", "Hunting bow", "bow", 4);
+}); // found: rust isn't made
+export const huntingBow = new Weapon(
+  "hunting-bow",
+  "Hunting bow",
+  "bow",
+  4
+).made("fletch", [
+  { id: "driftwood", qty: 2 },
+  { id: "kelp-fiber", qty: 1 },
+  { id: "pine-resin", qty: 1 },
+]);
 export const goblinSling = new Weapon(
   "goblin-sling",
   "Goblin sling",
   "bow",
   3,
   { price: 20 }
-);
+); // goblin-made: found
+
+// town gear
 export const ironSword = new Weapon("iron-sword", "Iron sword", "sword", 6, {
   reqStats: { str: 7 },
   price: 60,
-});
+}).made("smith", [
+  { id: "iron", qty: 2 },
+  { id: "leather", qty: 1 },
+  { id: "charcoal", qty: 1 },
+]);
 export const woodAxe = new Weapon("wood-axe", "Wood axe", "axe", 7, {
   reqStats: { str: 8 },
   price: 55,
-});
+}).made("smith", [
+  { id: "iron", qty: 1 },
+  { id: "ash", qty: 1 },
+  { id: "charcoal", qty: 1 },
+]);
 export const shortBow = new Weapon("short-bow", "Short bow", "bow", 5, {
   reqStats: { dex: 7 },
   price: 60,
-});
-export const ashStaff = new Weapon("ash-staff", "Ash staff", "staff", 3, {
-  reqStats: { int: 7 },
-  price: 50,
-});
-export const halesBlade = new Weapon(
-  "hales-blade",
-  "Hale's blade",
-  "sword",
-  6,
-  { grade: "rare", scaling: { stat: "lck", per: 0.5, from: 5 } }
-);
+}).made("fletch", [
+  { id: "ash", qty: 2 },
+  { id: "kelp-fiber", qty: 1 },
+  { id: "pine-resin", qty: 1 },
+]);
 
 // shop · the kiln yard's smiths left good steel behind
 export const kilnsteelSword = new Weapon(
@@ -49,18 +74,34 @@ export const kilnsteelSword = new Weapon(
   "sword",
   9,
   { reqLevel: 4, price: 140 }
-);
-export const yewBow = new Weapon("yew-bow", "Yew bow", "bow", 8, {
-  reqLevel: 4,
-  price: 120,
-});
+).made("smith", [
+  { id: "steel", qty: 2 },
+  { id: "leather", qty: 1 },
+  { id: "charcoal", qty: 1 },
+]);
 export const handAxe = new Weapon("hand-axe", "Hand axe", "axe", 10, {
   reqLevel: 4,
   reqStats: { str: 7 },
   price: 130,
-});
+}).made("smith", [
+  { id: "iron", qty: 1 },
+  { id: "yew", qty: 1 },
+  { id: "charcoal", qty: 1 },
+]);
 
-// drops · best for someone
+// found · best for someone — authored on top of the grid, never made
+export const halesBlade = new Weapon(
+  "hales-blade",
+  "Hale's blade",
+  "sword",
+  6,
+  {
+    grade: "rare",
+    perks: [{ kind: "scaling", stat: "lck", per: 0.5, from: 5 }],
+    describe:
+      "Hale's. The edge finds the gap it has no business finding — the luckier you are, the more often.",
+  }
+);
 export const alphaFang = new Weapon(
   "alphas-fang",
   "The alpha's fang",
@@ -71,6 +112,8 @@ export const alphaFang = new Weapon(
     grade: "rare",
     price: 90,
     scaling: { stat: "agi", per: 0.5, from: 5 },
+    describe:
+      "The alpha's own tooth, set in a grip. Quick hands make it quicker.",
   }
 );
 export const rimeEdge = new Weapon("rime-edge", "Rime edge", "sword", 10, {
@@ -78,6 +121,6 @@ export const rimeEdge = new Weapon("rime-edge", "Rime edge", "sword", 10, {
   grade: "rare",
   price: 160,
   scaling: { stat: "int", per: 0.5, from: 5 },
+  describe:
+    "Rime glass worked into a blade that never warms. It cuts cleaner the more you understand it.",
 });
-
-if (import.meta.hot) import.meta.hot.accept();

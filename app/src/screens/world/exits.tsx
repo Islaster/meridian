@@ -10,14 +10,8 @@ import { allowed } from "../../systems/tutorial";
 
 export default function Exits({ t }: { t: Town }) {
   const { state, loc, sig } = t;
-  console.log(
-    "land",
-    [...Dungeon.registry.keys()],
-    "exits here",
-    loc.exits.map((e) => e.to)
-  );
   return (
-    <div style={col}>
+    <div style={col} data-tut="exits">
       {loc.exits.map((e) => {
         const dest = Dungeon.registry.has(e.to)
           ? Dungeon.get(e.to)
@@ -40,13 +34,19 @@ export default function Exits({ t }: { t: Town }) {
         return (
           <button
             key={e.to}
+            data-tut={sig.exits[e.to]?.size ? "way" : undefined}
             style={{ ...ptr, opacity: blocked ? 0.4 : 1 }}
             disabled={blocked}
             onClick={() => t.go(e.to, e.hours)}
           >
             → {dest.name}
             {dest instanceof Dungeon && dest.kind === "dungeon" && (
-              <span style={dim}> · {dest.color} gate</span>
+              <span style={dim}>
+                {" "}
+                · {dest.color} gate
+                {dest.tempo !== 1 &&
+                  ` · time runs ${dest.tempo < 1 ? "slow" : "fast"} beyond`}
+              </span>
             )}
             {marks(sig.exits[e.to])}
             {why && <span style={dim}> · {why}</span>}

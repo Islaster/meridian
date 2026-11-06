@@ -1,3 +1,5 @@
+import { register } from "./registry";
+
 export class City {
   static registry = new Map<string, City>();
   static get(id: string): City {
@@ -25,6 +27,6 @@ export class City {
     this.owner = owner;
     this.size = size;
     this.centrality = centrality;
-    City.registry.set(id, this);
+    register(City.registry, "city", id, this);
   }
 }

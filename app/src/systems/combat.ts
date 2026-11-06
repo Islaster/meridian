@@ -2,17 +2,15 @@ import { Weapon, Armor, Item } from "../data/items";
 import { Monster } from "../data/monsters";
 import type { GameState } from "../state/types";
 import { itemByName } from "./inventory";
+import { bonus } from "./perks";
 
 type Player = GameState["player"];
 
+export const strBonus = (stats: Record<string, number>) =>
+  Math.floor((stats.str ?? 5) / 3); // what the arm adds, whatever the blade
+
 export function weaponDamage(w: Weapon, stats: Record<string, number>): number {
-  if (!w.scaling) return w.damage;
-  return (
-    w.damage +
-    Math.floor(
-      Math.max(0, (stats[w.scaling.stat] ?? 0) - w.scaling.from) * w.scaling.per
-    )
-  );
+  return w.perks.reduce((d, p) => d + bonus(p, stats), w.damage);
 }
 
 export function playerAttack(p: Player): number {
@@ -20,7 +18,7 @@ export function playerAttack(p: Player): number {
     ? itemByName(p.equipment.mainWeapon)
     : undefined;
   const base = w instanceof Weapon ? weaponDamage(w, p.stats) : 1;
-  return base + Math.floor((p.stats.str ?? 5) / 3);
+  return base + strBonus(p.stats);
 }
 
 export function playerDefense(p: Player): number {
@@ -68,7 +66,7 @@ export function spoils(monsterIds: string[], seed: string): Spoils {
 export const refresh = (done: string[], day: number) =>
   done.filter(
     (f) =>
-      !/^(room|chest|trap):/.test(f) &&
+      !/^(room|chest|trap):|^act:roam-/.test(f) &&
       !(f.startsWith("dormant:") && Number(f.split(":")[2]) <= day)
   );
 

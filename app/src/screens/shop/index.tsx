@@ -5,6 +5,7 @@ import type { Shop as ShopDef } from "../../data/world/locations";
 import { buy, sell, itemByName } from "../../systems/inventory";
 import { SERIF, MenuButton } from "../../ui/cards";
 import LedgerLine from "../../ui/ledgerline";
+import { graded } from "../../ui/grade";
 
 const row = {
   display: "flex",
@@ -105,7 +106,7 @@ export default function Shop({
             return (
               <div key={id} style={row}>
                 <span>
-                  {it.name}
+                  <span style={graded(it.grade)}>{it.name}</span>
                   <span style={{ opacity: 0.5 }}> · {it.price}</span>
                 </span>
                 <button
@@ -131,7 +132,7 @@ export default function Shop({
               return (
                 <div key={i.name} style={row}>
                   <span>
-                    {i.name}
+                    <span style={graded(it?.grade)}>{i.name}</span>
                     {i.qty > 1 && (
                       <span style={{ opacity: 0.5 }}> ×{i.qty}</span>
                     )}

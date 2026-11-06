@@ -10,6 +10,9 @@ export const saltCrystal = new Material(
 export const charcoal = new Material("charcoal", "Charcoal", "fuel", 1);
 export const ironOre = new Material("iron-ore", "Iron ore", "ore", 10);
 export const cinderOre = new Material("cinder-ore", "Cinder ore", "ore", 22);
+export const copperOre = new Material("copper-ore", "Copper ore", "ore", 3);
+export const tinOre = new Material("tin-ore", "Tin ore", "ore", 4);
+export const silverOre = new Material("silver-ore", "Silver ore", "ore", 40);
 export const ashGlass = new Material("ash-glass", "Ash glass", "ore", 30);
 export const wolfPelt = new Material("wolf-pelt", "Wolf pelt", "hide", 12);
 export const ratTail = new Material("rat-tail", "Rat tail", "part", 3);
@@ -32,5 +35,10 @@ export const frostCore = new Material(
   60,
   "rare"
 );
-
+export const seaWormwood = new Material(
+  "sea-wormwood",
+  "Sea wormwood",
+  "plant",
+  5
+);
 if (import.meta.hot) import.meta.hot.accept();

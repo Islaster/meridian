@@ -59,6 +59,7 @@ export interface GameState {
     camp?: string;
     room?: string;
     surveys: string[];
+    delve?: number; // hours spent inside this delve, in the dungeon's time
   };
   quests: Record<
     string,

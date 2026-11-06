@@ -1,5 +1,7 @@
 import type { Grade } from "./item";
 import { TIER_COLORS, gateSize } from "../data/world/portals";
+import { register } from "./registry";
+import { HOP } from "../systems/time";
 
 export type LandKind = "dungeon" | "place"; // a dungeon is a gate; a place is just land
 export type RoomType =
@@ -67,6 +69,8 @@ interface DungeonOpts {
   grade?: Grade;
   dormancy?: number;
   kind?: LandKind;
+  tempo?: number;
+  pace?: number; // hours from one room to the next — a quarter-hour unless the rooms are far apart
 }
 
 export class Dungeon {
@@ -86,7 +90,9 @@ export class Dungeon {
   entrance: string;
   rooms: Record<string, Room>;
   dormancy: number;
+  pace: number; // hours per room step
   kind: LandKind;
+  tempo: number; // town hours per hour inside — a gate's reality keeps its own time; land is 1
 
   constructor(
     id: string,
@@ -106,7 +112,9 @@ export class Dungeon {
     this.rooms = Object.fromEntries(rooms.map((r) => [r.id, r]));
     this.dormancy = opts.dormancy ?? 3;
     this.kind = opts.kind ?? "place";
-    Dungeon.registry.set(id, this);
+    this.tempo = opts.tempo ?? 1;
+    this.pace = opts.pace ?? HOP;
+    register(Dungeon.registry, "dungeon", id, this);
   }
   get known(): boolean {
     return !!this.manager;

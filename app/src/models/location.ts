@@ -2,6 +2,7 @@ import { type GameState } from "../state/types";
 import type { Requirement } from "./quest";
 import { HOP } from "../systems/time";
 import { type Craft } from "./item";
+import { register } from "./registry";
 
 export interface Exit {
   to: string;
@@ -37,7 +38,7 @@ export interface Action {
   fight?: string[]; // monster ids: this pointer starts a battle; the rest of the action fires on a win
   effect?: (s: GameState) => GameState;
   requires?: Requirement; // general gate; `quest` stays for the "while this quest is taken" case
-  oath?: boolean; // swearing to a master — swapping while sworn asks first
+  oath?: string; // swearing to a master — swapping while sworn asks first
   repeat?: boolean; // doesn't spend act:<id> — can be done again
 }
 
@@ -61,6 +62,13 @@ export interface Upgrade {
 
 export interface Board {
   onLocked?: (s: GameState) => { say: string; next?: GameState };
+}
+
+export interface Shift {
+  at: string; // where
+  open: number;
+  close: number; // 24h clock
+  days?: number[]; // weekdays (0 = the first day of the week); absent = every day
 }
 
 export interface NpcOpts {
@@ -145,7 +153,7 @@ export class Location {
     this.board = opts.board;
     this.roam = opts.roam;
     this.bench = opts.bench;
-    Location.registry.set(id, this);
+    register(Location.registry, "location", id, this);
   }
 }
 

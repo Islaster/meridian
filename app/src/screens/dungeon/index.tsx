@@ -1,8 +1,8 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useGame } from "../../state/gamecontext";
 import { Dungeon, type Room } from "../../data/world/land";
 import { Item } from "../../data/items";
-import { giveItem } from "../../systems/inventory";
+import { giveItem, hasItem } from "../../systems/inventory";
 import { progress, narrate } from "../../systems/quests";
 import type { GameState } from "../../state/types";
 import type { Note } from "../../systems/types";
@@ -16,7 +16,8 @@ import { type Spoils } from "../../systems/combat";
 import PlayerMenu from "../menu/playerMenu";
 import LevelUp from "../menu/levelUp";
 import QuestComplete from "../world/questcomplete";
-import { advance } from "../../systems/time";
+import { advance, dur } from "../../systems/time";
+import { night, type Bed } from "../../systems/night";
 
 const wrap = {
   minHeight: "100vh",
@@ -42,7 +43,7 @@ const ptr = {
 };
 
 export default function DungeonScreen() {
-  const { state, changeState, rollback } = useGame();
+  const { state, changeState, rollback, commit } = useGame();
   const [dead, setDead] = useState(false);
   const d = Dungeon.get(state.world.dungeon!);
   const room = d.rooms[state.world.room ?? d.entrance];
@@ -62,19 +63,46 @@ export default function DungeonScreen() {
     (Object.keys(n) as (keyof GameState)[]).forEach((k) =>
       changeState(k, n[k])
     );
+  // the dungeon's own hours, and the town's at the gate's tempo
+  const spend = (s: GameState, h: number): GameState => ({
+    ...s,
+    time: advance(s.time, h * d.tempo),
+    world: { ...s.world, delve: (s.world.delve ?? 0) + h },
+  });
+
+  // the night inside: land is just ground; beyond a gate, a camp pack is a bed and nothing else is
+  const packed = d.kind === "dungeon" && hasItem(state.bag, "camp-pack");
+  const sleepHere = (bed: Bed) => {
+    const r = night(state, bed, room.name.toLowerCase());
+    apply(r.state);
+    commit();
+    setNotes(r.notes);
+  };
+  useEffect(() => {
+    if (state.time.hour >= 24 && !fight && !dead)
+      sleepHere(packed ? "camp" : "rough");
+  }, [state.time.hour, fight, dead]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const move = (to: string) => {
     if (Location.registry.has(to)) {
-      changeState("world", {
-        ...state.world,
-        area: to,
-        dungeon: undefined,
-        room: undefined,
+      const out = spend(state, d.pace); // the walk out is a step like any other
+      apply({
+        ...out,
+        world: {
+          ...out.world,
+          area: to,
+          dungeon: undefined,
+          room: undefined,
+          delve: undefined,
+        },
       });
       return;
     }
     const next = d.rooms[to];
-    let s: GameState = { ...state, world: { ...state.world, room: to } };
+    let s: GameState = spend(
+      { ...state, world: { ...state.world, room: to } },
+      d.pace
+    );
     const out: Note[] = [];
     if (
       next.type === "trap" &&
@@ -163,7 +191,10 @@ export default function DungeonScreen() {
           justifyContent: "space-between",
         }}
       >
-        <span>{d.name}</span>
+        <span>
+          {d.name}
+          {state.world.delve ? ` · ${dur(state.world.delve)} inside` : ""}
+        </span>
         <span>
           {state.player.name} · {state.player.hp}/{state.player.maxHp} hp
         </span>
@@ -225,15 +256,20 @@ export default function DungeonScreen() {
           onClick={() => {
             const h = room.harvest!;
             setNotes([{ kind: "story", text: h.text }]);
+            const s = spend(state, h.hours ?? 0);
             apply({
-              ...state,
-              bag: giveItem(state.bag, h.id, h.qty ?? 1),
-              time: h.hours ? advance(state.time, h.hours) : state.time,
-              done: [...state.done, flag("gather")],
+              ...s,
+              bag: giveItem(s.bag, h.id, h.qty ?? 1),
+              done: [...s.done, flag("gather")],
             });
           }}
         >
           Gather{room.harvest.hours ? ` · ${room.harvest.hours}h` : ""}
+        </button>
+      )}
+      {packed && !hostile && (
+        <button style={ptr} onClick={() => sleepHere("camp")}>
+          Make camp · sleep till morning
         </button>
       )}
       {room.type === "stat" && !has("stat") && (

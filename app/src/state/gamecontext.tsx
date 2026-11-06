@@ -17,9 +17,17 @@ export function GameProvider({ children }: { children: ReactNode }) {
       committed.current = structuredClone(prev);
       return prev;
     });
-  const rollback = () => {
-    if (committed.current) setState(structuredClone(committed.current));
-  };
+  const rollback = () =>
+    setState((now) => {
+      if (!committed.current) return now;
+      const back = structuredClone(committed.current);
+      const learned = now.done.filter(
+        (f) => f.startsWith("tut:") && !back.done.includes(f)
+      );
+      return learned.length
+        ? { ...back, done: [...back.done, ...learned] }
+        : back;
+    });
   const changeState: Game["changeState"] = (prop, value) =>
     setState((prev) => ({ ...prev, [prop]: value }));
 

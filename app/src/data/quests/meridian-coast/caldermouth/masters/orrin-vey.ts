@@ -1,21 +1,28 @@
-import { Quest } from "../../../../models/quest";
-import { learn } from "../../../../systems/classes";
+import { Quest } from "../../../../../models/quest";
+import { learn } from "../../../../../systems/classes";
+import { line } from "./line";
 
-new Quest(
-  "meet-orrin-vey",
-  "side",
-  "Meet Orrin Vey",
-  "Orrin Vey keeps the lantern house on the point, past harbor row. Go and hear the terms.",
-  { kind: "talk", npc: "orrin-vey" },
-  {
-    chain: "The lamp and the tide",
-    visible: { complete: ["the-tide-cave"] },
-    set: ["met:orrin-vey"],
-    narration:
-      '"Tide\'s out." Orrin is trimming the lamp. "Osric used to sit on that step and ask me what the sea wanted. Wrong question. It doesn\'t want. It pulls." He looks at you properly. "Can you feel which way?"',
-    next: "trial-orrin-vey",
-  }
-);
+line({
+  npc: "orrin-vey",
+  short: "Orrin",
+  where: "the lantern house on the point",
+  chain: "The turning tide",
+  className: "Wader",
+  next: "forms-orrin-vey",
+  meet: '"Tide\'s out." Orrin is trimming the lamp. "Osric used to sit on that step and ask me what the sea wanted. Wrong question. It doesn\'t want. It pulls." He looks at you properly. "Can you feel which way?"',
+  noticed:
+    'Orrin stops watching the water and watches you. "The thing in the lamp eats. Dried fish. Dunny has it."',
+  errand: {
+    name: "Fish for the lamp",
+    objective: "Bring Orrin dried fish for whatever lives in the lamp.",
+    complete: { kind: "have", item: "dried-fish" },
+    take: ["dried-fish"],
+    narration: "Salt-stiff and light as paper.",
+  },
+  back: 'Orrin opens the lamp a crack and the fish is gone before you see what took it. "It likes you," he says. "Or the fish."',
+  oath: '"Wader," Orrin says. "You stand where the water is and learn where it isn\'t."',
+});
+
 new Quest(
   "trial-orrin-vey",
   "side",
@@ -40,7 +47,7 @@ new Quest(
     chain: "The lamp and the tide",
     visible: { flags: ["sworn:orrin-vey"] },
     reward: { xp: 50 },
-    onComplete: learn("undertow"),
+    onComplete: learn("undertow", "cold-salve"),
     epilogue:
       "\"There,\" he says, when you open your eyes. \"That's the undertow. Don't fight it; it's on your side.\" The hall, he adds, has a window on the water. He's noticed.",
   }

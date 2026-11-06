@@ -1,5 +1,5 @@
-import { Quest } from "../../../../models/quest";
-import { returnLoan } from "../../../../systems/inventory";
+import { Quest } from "../../../../../models/quest";
+import { returnLoan } from "../../../../../systems/inventory";
 
 new Quest(
   "talk-wenna",

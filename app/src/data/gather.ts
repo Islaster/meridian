@@ -1,8 +1,11 @@
 import type { Requirement } from "../models/quest";
+import type { Grade } from "../models/item";
 
 export type Spot = {
   id: string; // action id
-  at: string; // location or dungeon id
+  at: string | string[]; // fixed: one place · rare: the places it can turn up — the day picks one
+  grade?: Grade; // rare and above: dealt by the day, needs the craft class to work
+  odds?: number; // base chance per day, before the ledger moves it (default 0.15)
   label: string;
   text: string;
   material: string; // item id — must exist in data/items
@@ -20,7 +23,7 @@ export const SPOTS: Spot[] = [
   // ore — one row of the metal ladder each, each a step further from the forge
   {
     id: "rake-out",
-    at: "kiln-yard",
+    at: "the-kilns",
     label: "Rake out the kiln",
     text: "Charcoal from last night's burn.",
     material: "charcoal",
@@ -39,11 +42,11 @@ export const SPOTS: Spot[] = [
     cap: 2,
   },
   {
-    id: "cut",
+    id: "gravel",
     at: "kiln-road",
-    label: "Work the cut",
-    text: "An hour with the pick on the switchbacks.",
-    material: "iron-ore",
+    label: "Stream the gravel",
+    text: "Tin in the Calder's bed where the road fords it.",
+    material: "tin-ore",
     kind: "ore",
     rich: FAIR,
     cap: 3,
@@ -53,7 +56,7 @@ export const SPOTS: Spot[] = [
     at: "kilns-cold",
     label: "Work the kilns' vein",
     text: "Blue-black ore in the frost.",
-    material: "rime-steel-ore",
+    material: "iron-ore",
     kind: "ore",
     rich: RICH,
     cap: 3,
@@ -64,7 +67,7 @@ export const SPOTS: Spot[] = [
     at: "the-butts",
     label: "Cut staves in the coppice",
     text: "Ash, straight enough to bend.",
-    material: "ash-stave",
+    material: "ash",
     kind: "wood",
     rich: THIN,
     cap: 2,
@@ -72,9 +75,9 @@ export const SPOTS: Spot[] = [
   {
     id: "pines",
     at: "kiln-road",
-    label: "Fell a pine",
-    text: "Mountain pine; heavy, slow to split.",
-    material: "pine-stave",
+    label: "Cut yew on the switchbacks",
+    text: "Upland yew, the bow wood.",
+    material: "yew",
     kind: "wood",
     rich: FAIR,
     cap: 3,
@@ -85,7 +88,7 @@ export const SPOTS: Spot[] = [
     at: "the-stillroom",
     label: "Cut herbs in the garden",
     text: "Hesper's beds; take what's grown.",
-    material: "sorrel",
+    material: "sea-wormwood",
     kind: "herb",
     rich: THIN,
     cap: 2,
@@ -96,7 +99,7 @@ export const SPOTS: Spot[] = [
     at: "the-shingle",
     label: "Rake the tideline",
     text: "Kelp and salt, left by the ebb.",
-    material: "sea-kelp",
+    material: "kelp-fiber",
     kind: "herb",
     rich: THIN,
     cap: 2,
@@ -105,11 +108,22 @@ export const SPOTS: Spot[] = [
     id: "tide-pools",
     at: "tide-cave",
     label: "Work the tide pools",
-    text: "Brine-flowers under the cold water.",
-    material: "brine-flower",
+    text: "Salt crusts the rock where the pools dry.",
+    material: "salt-crystal",
     kind: "herb",
     rich: FAIR,
     cap: 3,
+  },
+  {
+    id: "green-glass",
+    at: ["the-shingle", "kiln-road", "kilns-cold"],
+    label: "Pry out the green glass",
+    text: "Ore grown through with glass. It wasn't here yesterday.",
+    material: "rime-glass",
+    kind: "ore",
+    grade: "rare",
+    rich: THIN,
+    cap: 1,
   },
 ];
 

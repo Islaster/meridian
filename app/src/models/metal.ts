@@ -27,7 +27,7 @@ export const METALS = [
     level: 3,
     from: [
       ["copper", 2],
-      ["tin", 1],
+      ["tin-ore", 1],
     ],
   },
   {
@@ -59,7 +59,7 @@ export const METALS = [
     level: 15,
     from: [
       ["steel", 2],
-      ["silver", 1],
+      ["silver-ore", 1],
     ],
   },
   {

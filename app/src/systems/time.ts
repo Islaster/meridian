@@ -22,6 +22,7 @@ export const HOP = 0.25; // a street hop, in hours — sheet row
 export const WEARY = 0.25; // share of your best stat lost to a late night (min 1)
 export const PRACTICE_PROF = 2; // per session, to the medium
 export const PRACTICE_CAP = 2; // sessions per day that count
+
 export const clock = (h: number) =>
   `${Math.floor(h)}:${String(Math.round((h % 1) * 60)).padStart(2, "0")}`;
 export const dur = (h: number) => {

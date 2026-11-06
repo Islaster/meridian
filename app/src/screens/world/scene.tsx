@@ -1,5 +1,5 @@
 import type { Town } from "./usetown";
-import { para } from "../../ui/styles";
+import { para, rail } from "../../ui/styles";
 import { describeNow } from "../../systems/presence";
 import { GLYPH } from "../../systems/quests";
 import { Quest } from "../../data/quests";
@@ -45,8 +45,15 @@ export default function Scene({ t }: { t: Town }) {
         .map(([id]) => {
           const q = Quest.get(id);
           return (
-            <div key={id} style={{ opacity: 0.6, fontSize: "0.9em" }}>
-              {GLYPH[q.kind]} {q.name} — {q.objective}
+            <div
+              key={id}
+              data-tut="tracker"
+              style={{ ...rail, fontSize: "0.9em" }}
+            >
+              <span>
+                <span data-tut="mark">{GLYPH[q.kind]}</span> {q.name}
+              </span>
+              <span style={{ opacity: 0.7 }}>{q.objective}</span>
             </div>
           );
         })}

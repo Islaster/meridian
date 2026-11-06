@@ -19,15 +19,22 @@ export default function Coachmark({
   const [box, setBox] = useState<DOMRect | null>(null);
 
   useLayoutEffect(() => {
+    let shown = false;
     const find = () => {
       const el = target ? document.querySelector<HTMLElement>(target) : null;
+      if (el && !shown) {
+        shown = true;
+        el.scrollIntoView({ block: "center", behavior: "smooth" }); // bring the step to the eye, not the eye to the step
+      }
       setBox(el ? el.getBoundingClientRect() : null);
     };
     find();
     window.addEventListener("resize", find);
+    window.addEventListener("scroll", find, true); // any scroller, the menu's included
     const id = window.setInterval(find, 250); // the page re-lays out after state changes; keep up
     return () => {
       window.removeEventListener("resize", find);
+      window.removeEventListener("scroll", find, true);
       window.clearInterval(id);
     };
   }, [target]);

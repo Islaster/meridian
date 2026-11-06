@@ -38,9 +38,11 @@ const VERBS: Record<
 
 export default function Forge({
   craft: which,
+  title,
   onClose,
 }: {
   craft: Craft;
+  title: string;
   onClose: () => void;
 }) {
   const { state, changeState } = useGame();
@@ -84,10 +86,13 @@ export default function Forge({
           gap: 16,
         }}
       >
-        <div style={label}>The anvil{recipe && ` · ${recipe.name}`}</div>
+        <div style={label}>
+          {title}
+          {recipe && ` · ${recipe.name}`}
+        </div>
 
         {stage === "choose" &&
-          recipes(state, "smith").map((r) => {
+          recipes(state, which).map((r) => {
             const lack = missing(state, r),
               w = gradeWindow(state, r);
             return (

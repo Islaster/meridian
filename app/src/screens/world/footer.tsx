@@ -21,14 +21,15 @@ export default function Footer({ t }: { t: Town }) {
           style={{ ...ptr, opacity: restOk ? 1 : 0.4 }}
           disabled={!restOk}
           onClick={t.rest}
+          data-tut="rest"
         >
           Sleep until morning
         </button>
       )}
-      <div style={{ opacity: 0.45 }}>
+      <div style={{ opacity: 0.45 }} data-tut="key">
         ✦ main · ◇ side · ⚔ bounty · ⚑ mission
       </div>
-      <span style={link} onClick={() => t.setMenu("inventory")}>
+      <span style={link} data-tut="menu" onClick={() => t.setMenu("inventory")}>
         [ menu ]
       </span>
     </>

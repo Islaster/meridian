@@ -1,3 +1,5 @@
+import { register } from "./registry";
+
 export const GRADES = [
   "inferiority",
   "normal",
@@ -39,6 +41,7 @@ export type Kind =
   | "consumable"
   | "throwable"
   | "material"
+  | "tool"
   | "quest";
 export type WeaponType = (typeof WEAPON_TYPES)[number];
 export type ArmorGroup =
@@ -57,6 +60,7 @@ export type MaterialGroup =
   | "hide"
   | "shell"
   | "ore"
+  | "metal"
   | "plant"
   | "part"
   | "fuel";
@@ -72,6 +76,8 @@ export type Slot =
   | "ring"
   | "offhand"
   | "weapon";
+// A perk is a mechanic: something the engine applies in play and can spell out in words. One kind so far.
+export type Perk = { kind: "scaling"; stat: string; per: number; from: number }; // damage grows with a stat
 
 export interface Recipe {
   craft: Craft;
@@ -83,6 +89,8 @@ interface GearOpts {
   reqStats?: Record<string, number>;
   price?: number;
   grade?: Grade;
+  describe?: string; // what it looks like — flavor only, never a rule
+  perks?: Perk[];
 }
 
 export class Item {
@@ -98,6 +106,7 @@ export class Item {
   tags: Tag[];
   grade: Grade;
   price: number;
+  describe?: string; // what it looks like — flavor only, never a rule
   recipe?: Recipe;
   constructor(
     id: string,
@@ -111,7 +120,7 @@ export class Item {
     this.tags = tags;
     this.grade = grade;
     this.price = price;
-    Item.registry.set(id, this);
+    register(Item.registry, "item", id, this);
   }
   has(tag: Tag): boolean {
     return this.tags.includes(tag);
@@ -137,6 +146,7 @@ export class Weapon extends Item {
   reqLevel: number;
   reqStats: Record<string, number>;
   scaling?: { stat: string; per: number; from: number };
+  perks: Perk[];
   constructor(
     id: string,
     name: string,
@@ -149,6 +159,8 @@ export class Weapon extends Item {
     this.reqLevel = opts.reqLevel ?? 1;
     this.reqStats = opts.reqStats ?? {};
     this.scaling = opts.scaling;
+    this.describe = opts.describe ?? "";
+    this.perks = opts.perks ?? [];
   }
   get weaponType(): WeaponType {
     return this.tags[1] as WeaponType;
@@ -159,6 +171,7 @@ export class Armor extends Item {
   defense: number;
   reqLevel: number;
   reqStats: Record<string, number>;
+  perks: Perk[];
   constructor(
     id: string,
     name: string,
@@ -170,6 +183,8 @@ export class Armor extends Item {
     this.defense = defense;
     this.reqLevel = opts.reqLevel ?? 1;
     this.reqStats = opts.reqStats ?? {};
+    this.perks = opts.perks ?? [];
+    this.describe = opts.describe ?? "";
   }
 }
 
@@ -212,6 +227,13 @@ export class Material extends Item {
     grade: Grade = "normal"
   ) {
     super(id, name, ["material", group], grade, price);
+  }
+}
+
+export class Tool extends Item {
+  constructor(id: string, name: string, price = 0, describe?: string) {
+    super(id, name, ["tool"], "normal", price);
+    this.describe = describe;
   }
 }
 

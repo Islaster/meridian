@@ -1,4 +1,4 @@
-import { Quest } from "../../../../models/quest";
+import { Quest } from "../../../../../models/quest";
 
 new Quest(
   "journal-to-pell",
@@ -48,7 +48,7 @@ new Quest(
   "main",
   "Settle the lien",
   "Bring 12,000 gold to the Charter Guild and pay off Fenn's lien.",
-  { kind: "flag", flag: "paid:lien" },
+  { kind: "flag", flag: "act:pay-lien" },
   {
     chain: "The lien",
     reward: { xp: 30 },

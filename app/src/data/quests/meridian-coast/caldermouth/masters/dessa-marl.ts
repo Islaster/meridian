@@ -1,21 +1,28 @@
-import { Quest } from "../../../../models/quest";
-import { learn } from "../../../../systems/classes";
+import { Quest } from "../../../../../models/quest";
+import { learn } from "../../../../../systems/classes";
+import { line } from "./line";
 
-new Quest(
-  "meet-dessa-marl",
-  "side",
-  "Meet Dessa Marl",
-  "Dessa Marl still keeps one kiln lit in the kiln yard, up the kiln road. Go and hear the terms.",
-  { kind: "talk", npc: "dessa-marl" },
-  {
-    chain: "Banked",
-    visible: { complete: ["the-tide-cave"] },
-    set: ["met:dessa-marl"],
+line({
+  npc: "dessa-marl",
+  short: "Dessa",
+  where: "the kiln yard, up the kiln road",
+  chain: "Banked",
+  className: "Stoker",
+  next: "forms-dessa-marl",
+  meet: '"The gate took the kilns. It didn\'t take me." Dessa has one kiln going and her hands in it. "Osric\'s boy. He said you\'d come round the fire eventually. Everybody does."',
+  noticed:
+    '"You\'ve got the draught right twice." Dessa wipes her hands. "Tobin has my bellows. Has had for a month."',
+  errand: {
+    name: "Dessa's bellows",
+    objective: "Get Dessa's bellows back from Tobin Ashe at the forge.",
+    complete: { kind: "talk", npc: "tobin-ashe" },
     narration:
-      '"The gate took the kilns. It didn\'t take me." Dessa has one kiln going and her hands in it. "Osric\'s boy. He said you\'d come round the fire eventually. Everybody does."',
-    next: "trial-dessa-marl",
-  }
-);
+      'Tobin doesn\'t look up. "Tell her when she pays for the last pair." He hands you a leather bellows anyway.',
+  },
+  back: 'Dessa hangs them on their nail without a word, then: "Say the words. Short ones. I\'ve a fire to keep."',
+  oath: '"Stoker," Dessa says. "Keep what\'s banked, banked."',
+});
+
 new Quest(
   "trial-dessa-marl",
   "side",
@@ -40,7 +47,7 @@ new Quest(
     chain: "Banked",
     visible: { flags: ["sworn:dessa-marl"] },
     reward: { xp: 50 },
-    onComplete: learn("flare"),
+    onComplete: learn("flare", "warm-hands"),
     epilogue:
       '"Right," Dessa says, and means the heat. "The hall has a cold hearth. I\'ve seen it. Light it and I\'ll know."',
   }

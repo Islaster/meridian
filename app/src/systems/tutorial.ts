@@ -7,15 +7,25 @@ import {
 } from "../data/tutorial";
 
 // the first tutorial whose start condition holds and which still has an unfinished step
-export const current = (
-  s: GameState
+// the first tutorial whose start condition holds and which still has an unfinished step
+const pick = (
+  s: GameState,
+  inside?: Tutorial["inside"]
 ): { tutorial: Tutorial; step: Step } | undefined => {
   for (const t of TUTORIALS) {
+    if (t.inside !== inside) continue;
     if (!t.when(s)) continue;
     const step = t.steps.find((st) => !st.done(s));
-    if (step) return { tutorial: t, step };
+    if (!step) continue;
+    if (step.when && !step.when(s)) continue; // waiting on its moment — a later tutorial may run meanwhile
+    return { tutorial: t, step };
   }
 };
+export const current = (s: GameState) => pick(s); // the world's
+export const currentIn = (
+  s: GameState,
+  inside: NonNullable<Tutorial["inside"]>
+) => pick(s, inside); // a screen's own
 
 export const allowed = (s: GameState, p: Pointer): boolean => {
   const c = current(s);

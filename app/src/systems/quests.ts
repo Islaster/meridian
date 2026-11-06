@@ -16,6 +16,8 @@ import { RANKS } from "../data/world/land";
 import { notify } from "./notices";
 import { placed } from "./actions";
 import { SPOTS } from "../data/gather";
+import { canCraft } from "./craft";
+import { dealt } from "./gather";
 
 export type Event =
   | { kind: "visit"; location: string }
@@ -67,6 +69,8 @@ export function unmet(s: GameState, r?: Requirement): string | null {
     if (s.done.includes(f)) return "That door is closed.";
   for (const [k, n] of Object.entries(r.stats ?? {}))
     if ((s.player.stats[k] ?? 0) < n) return `Needs ${k.toUpperCase()} ${n}.`;
+  if (r.craft && !canCraft(s, r.craft)) return `Needs a ${r.craft}'s eye.`;
+  if (r.level && s.player.level < r.level) return `Needs level ${r.level}.`;
   if (r.day?.from !== undefined && s.time.dayId < r.day.from) return "Not yet.";
   if (r.day?.until !== undefined && s.time.dayId > r.day.until)
     return "Too late.";
@@ -76,6 +80,7 @@ export function unmet(s: GameState, r?: Requirement): string | null {
     return `Not after ${r.hour.until}:00.`;
   return null;
 }
+
 export const meets = (s: GameState, r?: Requirement) => unmet(s, r) === null;
 
 const set = (
@@ -202,14 +207,18 @@ function nextHop(from: string, to: string): string | undefined {
     }
   }
 }
-const actionAt = (id: string) =>
-  id.startsWith("roam-") && Location.registry.has(id.slice(5))
-    ? id.slice(5)
-    : placed().find((a) => a.id === id)?.at ??
-      SPOTS.find((sp) => sp.id === id)?.at ??
-      [...Location.registry.values()].find((l) =>
-        l.actions.some((a) => a.id === id)
-      )?.id;
+const actionAt = (s: GameState, id: string): string | undefined => {
+  if (id.startsWith("roam-") && Location.registry.has(id.slice(5)))
+    return id.slice(5);
+  const sp = SPOTS.find((x) => x.id === id);
+  if (sp) return dealt(s, sp);
+  return (
+    placed().find((a) => a.id === id)?.at ??
+    [...Location.registry.values()].find((l) =>
+      l.actions.some((a) => a.id === id)
+    )?.id
+  );
+};
 
 const boardLocation = () =>
   [...Location.registry.values()].find((l) => l.board)?.id;
@@ -293,7 +302,7 @@ export function signals(s: GameState): Signals {
     if ("place" in t) return point(t.place, k);
     if ("dungeon" in t) return point(t.dungeon, k);
     if ("action" in t)
-      return point(actionAt(t.action), k, [out.actions, t.action]);
+      return point(actionAt(s, t.action), k, [out.actions, t.action]);
     if ("board" in t) {
       const hall = boardLocation();
       if (hall === here) out.board.add(k);
@@ -301,7 +310,16 @@ export function signals(s: GameState): Signals {
       return;
     }
     if ("quest" in t) {
-      const next = current(Quest.get(t.quest));
+      if (!Quest.registry.has(t.quest)) return;
+      const q = Quest.get(t.quest);
+      if (s.quests[t.quest]?.status === "complete") {
+        const on = [q.next ?? []]
+          .flat()
+          .find((n) => s.quests[n]?.status === "taken");
+        if (on) follow({ quest: on }, k); // a finished link hands the ✦ down its chain
+        return;
+      }
+      const next = current(q);
       if (next) follow(next, k);
       return;
     }

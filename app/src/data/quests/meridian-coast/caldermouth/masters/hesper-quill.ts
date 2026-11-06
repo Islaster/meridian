@@ -1,20 +1,27 @@
-import { Quest } from "../../../../models/quest";
+import { Quest } from "../../../../../models/quest";
+import { line } from "./line";
 
-new Quest(
-  "meet-hesper-quill",
-  "side",
-  "Meet Hesper Quill",
-  "Hesper Quill keeps the stillroom on harbor row. Go and hear the terms.",
-  { kind: "talk", npc: "hesper-quill" },
-  {
-    chain: "What the tide gives",
-    visible: { complete: ["the-tide-cave"] },
-    set: ["met:hesper-quill"],
-    narration:
-      '"The hall\'s new tenant." Hesper doesn\'t offer a chair. "Osric could read a tide table and a wound the same way. Can you read at all?" The stillroom smells of salt and something bitter.',
-    next: "trial-hesper-quill",
-  }
-);
+line({
+  npc: "hesper-quill",
+  short: "Hesper",
+  where: "the stillroom on harbor row",
+  chain: "The bitter shelf",
+  className: "Herbalist",
+  meet: '"The hall\'s new tenant." Hesper doesn\'t offer a chair. "Osric could read a tide table and a wound the same way. Can you read at all?" The stillroom smells of salt and something bitter.',
+  noticed:
+    '"Still here." Hesper doesn\'t turn. "The shingle has kelp on it at the ebb. I want it before it dries."',
+  errand: {
+    name: "Kelp for the stillroom",
+    objective:
+      "Bring Hesper kelp fiber — the tideline on the shingle leaves it in rows.",
+    complete: { kind: "have", item: "kelp-fiber" },
+    take: ["kelp-fiber"],
+    narration: "Cold, slick, and smelling of the whole sea.",
+  },
+  back: 'She holds it to the light, then to her nose. "It will do." From Hesper, that is praise.',
+  oath: '"Herbalist," she says, writing it on a label. "Touch nothing I haven\'t named."',
+});
+
 new Quest(
   "trial-hesper-quill",
   "side",

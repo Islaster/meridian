@@ -1,4 +1,5 @@
 import type { Craft, Grade, WeaponType } from "./item";
+import { register } from "./registry";
 
 export type Lineage = "battle" | "support";
 export type Element = "tide" | "ember"; // a spell's medium, as a weapon type is a technique's
@@ -47,6 +48,6 @@ export class PlayerClass {
     this.skills = opts.skills ?? [];
     this.starts = opts.starts ?? [];
     this.floor = opts.floor ?? {};
-    PlayerClass.registry.set(id, this);
+    register(PlayerClass.registry, "class ", id, this);
   }
 }

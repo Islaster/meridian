@@ -1,3 +1,5 @@
+import { register } from "./registry";
+
 export type Archetype = "near" | "far" | "swarmer" | "heavy";
 export interface Drop {
   item: string;
@@ -49,6 +51,6 @@ export class Monster {
     this.drops = loot.drops ?? [];
     this.describe = describe;
     this.fleeable = fleeable;
-    Monster.registry.set(id, this);
+    register(Monster.registry, "monster", id, this);
   }
 }

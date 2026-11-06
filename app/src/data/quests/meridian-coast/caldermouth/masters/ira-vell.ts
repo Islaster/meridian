@@ -1,5 +1,5 @@
-import { Quest } from "../../../../models/quest";
-import { learn } from "../../../../systems/classes";
+import { Quest } from "../../../../../models/quest";
+import { learn } from "../../../../../systems/classes";
 
 new Quest(
   "deliver-the-notice",
@@ -16,7 +16,7 @@ new Quest(
 );
 
 new Quest(
-  "meet-the-master",
+  "meet-ira-vell",
   "side",
   "The name in the journal",
   "Osric's journal names Ira Vell — the last teacher who ever stood in the hall. Find him at the sword yard.",
@@ -38,6 +38,7 @@ new Quest(
   { kind: "flag", flag: "noticed:ira-vell" },
   {
     chain: "Two breaths",
+    track: [{ action: "practice-ira-vell" }],
     narration:
       '"You again." Ira watches a full form through before he speaks. "Carry something for me, and we\'ll see."',
     next: "errand-ira-vell",
@@ -62,11 +63,19 @@ new Quest(
   "errand-ira-vell-2",
   "side",
   "The yard's receipt",
-  "Fetch the yard's dues receipt from Pell Marrow at the Guild, and bring it back to Ira.",
+  "Fetch the yard's dues receipt from Pell Marrow at the Guild, on the square.",
+  { kind: "flag", flag: "act:yard-receipt" },
+  { chain: "Two breaths", next: "errand-ira-vell-3" }
+);
+
+new Quest(
+  "errand-ira-vell-3",
+  "side",
+  "Back to Ira",
+  "Bring the receipt back to Ira at the sword yard.",
   { kind: "talk", npc: "ira-vell" },
   {
     chain: "Two breaths",
-    visible: { flags: ["act:yard-receipt"] },
     set: ["errands:ira-vell", "errands"],
     narration:
       'Ira reads it the way he reads everything, then folds it into his belt. "That\'s twice. Say the words, if you want them."',
@@ -82,6 +91,11 @@ new Quest(
   { kind: "flag", flag: "sworn:ira-vell" },
   {
     chain: "Two breaths",
+    track: [
+      {
+        any: [{ action: "oath-ira-vell-lesser" }, { action: "oath-ira-vell" }],
+      },
+    ],
     narration:
       '"Soldier," Ira says, which is not a compliment, and not an insult either. "The rest is earned."',
     next: "first-forms",
@@ -98,7 +112,7 @@ new Quest(
     chain: "Two breaths",
     visible: { flags: ["sworn:ira-vell"] },
     reward: { xp: 50 },
-    onComplete: learn("second-breath"),
+    onComplete: learn("second-breath", "catch-breath"),
     epilogue:
       "\"That'll do for a start,\" Ira says, which from him is a speech. The bar on your Ledger has a second line now, and a name for what it holds. \"You've a hall with empty racks and a paper on it that isn't yours. Fix the paper. Then we'll talk about the racks.\"",
   }
@@ -117,6 +131,16 @@ new Quest(
     onComplete: learn("heavy-cut"),
     epilogue:
       '"Everything behind one stroke," Ira says. "Not most of it. Everything." You feel the difference in your shoulders for a week.',
+    actions: [
+      {
+        at: "sword-yard",
+        id: "train-weight",
+        quest: "the-weight",
+        hours: 4,
+        label: "Carry the weight",
+        text: "A sack of wet sand on a pole, the length of the yard and back, until the pole is the only thing you can feel. Ira counts nothing out loud. Near the end he takes the pole, hands you a blade, and says one word: again.",
+      },
+    ],
   }
 );
 

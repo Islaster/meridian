@@ -122,6 +122,8 @@ new Dungeon(
     kind: "dungeon",
     manager: { kind: "guild", owner: "caldermouth" },
     dormancy: 3,
+    tempo: 0.5,
+    pace: 1,
   }
 );
 

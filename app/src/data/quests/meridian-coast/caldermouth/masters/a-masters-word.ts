@@ -1,7 +1,7 @@
-import { Quest } from "../../../../models/quest";
+import { Quest } from "../../../../../models/quest";
 
 const SIX = [
-  "the-master",
+  "ira-vell",
   "maud-kestrel",
   "tobin-ashe",
   "hesper-quill",

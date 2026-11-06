@@ -1,27 +1,34 @@
-import { Quest } from "../../../../models/quest";
-import { learn } from "../../../../systems/classes";
+import { Quest } from "../../../../../models/quest";
+import { learn } from "../../../../../systems/classes";
+import { line } from "./line";
 
-new Quest(
-  "meet-maud-kestrel",
-  "side",
-  "Meet Maud Kestrel",
-  "Maud Kestrel keeps the butts by the gate wall. Go and hear the terms.",
-  { kind: "talk", npc: "maud-kestrel" },
-  {
-    chain: "The held breath",
-    visible: { complete: ["the-tide-cave"] },
-    set: ["met:maud-kestrel"],
+line({
+  npc: "maud-kestrel",
+  short: "Maud",
+  where: "the butts, inside the gate wall",
+  chain: "The held breath",
+  className: "Archer",
+  next: "forms-maud-kestrel",
+  meet: '"Osric\'s heir." She doesn\'t look up from the string she\'s waxing. "He sent me three students in twenty years. Two of them could hit a door." She points her chin down the range. "Show me."',
+  noticed:
+    '"You again." She watches a full draw before she speaks. "Fetch me something, and we\'ll see."',
+  errand: {
+    name: "Strings from Dunny",
+    objective: "Fetch Maud's bowstrings from Dunny Crake on harbor row.",
+    complete: { kind: "talk", npc: "dunny-crake" },
     narration:
-      '"Osric\'s heir." She doesn\'t look up from the string she\'s waxing. "He sent me three students in twenty years. Two of them could hit a door." She points her chin down the range. "Show me."',
-    next: "trial-maud-kestrel",
-  }
-);
+      "Dunny pulls a coil of waxed string from under the counter without asking who it's for. \"Tell her the price went up. It didn't.\"",
+  },
+  back: 'Maud tests each string against her thumb. "He always says that." A nod toward the range. "Say the words, if you want them."',
+  oath: '"Archer," Maud says, which is a job, not a title. "The rest is earned."',
+});
+
 new Quest(
   "trial-maud-kestrel",
   "side",
   "The running mark",
   "Hit what Maud sends running across the butts.",
-  { kind: "flag", flag: "act:the-mark" },
+  { kind: "flag", flag: "act:loose-at-the-mark" },
   {
     chain: "The held breath",
     visible: { complete: ["meet-maud-kestrel"] },
@@ -40,7 +47,7 @@ new Quest(
     chain: "The held breath",
     visible: { flags: ["sworn:maud-kestrel"] },
     reward: { xp: 50 },
-    onComplete: learn("pin-shot"),
+    onComplete: learn("pin-shot", "steady"),
     epilogue:
       '"You\'ll do," Maud says, and goes back to her waxing. "The hall has a rack with nothing on it. Put a bow on it and I might visit."',
   }

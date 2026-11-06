@@ -18,8 +18,6 @@ export default function Overlays({ t }: { t: Town }) {
     setConfirm,
     tutorial,
     dismissTutorial,
-    cur,
-    tutorialSeen,
     bench,
     setBench,
   } = t;
@@ -41,7 +39,11 @@ export default function Overlays({ t }: { t: Town }) {
         <QuestOffer id={t.prompt} onClose={() => t.setPrompt(null)} />
       )}
       {bench && loc.bench && (
-        <Forge craft={loc.bench.craft} onClose={() => setBench(false)} />
+        <Forge
+          craft={loc.bench.craft}
+          title={loc.bench.label}
+          onClose={() => setBench(false)}
+        />
       )}
       {done?.id && (
         <QuestComplete
@@ -89,26 +91,13 @@ export default function Overlays({ t }: { t: Town }) {
         </div>
       )}
       {tutorial && (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(0,0,0,0.92)",
-            display: "grid",
-            placeItems: "center",
-            padding: 24,
-          }}
-        >
-          {cur && (
-            <Coachmark
-              title={cur.tutorial.title}
-              text={cur.step.text}
-              target={cur.step.target}
-              showText={!tutorialSeen}
-              onDone={dismissTutorial}
-            />
-          )}
-        </div>
+        <Coachmark
+          title={tutorial.tutorial.title}
+          text={tutorial.step.text}
+          target={tutorial.step.target}
+          showText
+          onDone={dismissTutorial}
+        />
       )}
     </>
   );

@@ -1,4 +1,4 @@
-import { Quest } from "../../../../models/quest";
+import { Quest } from "../../../../../models/quest";
 
 // ── Postings · the Guild's board ───────────────────────────────────────────
 new Quest(

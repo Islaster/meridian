@@ -86,7 +86,7 @@ export function Toasts({ state }: { state: GameState }) {
             border: "1px solid rgba(233,236,242,0.3)",
             borderLeft: "3px solid rgba(233,236,242,0.75)",
             padding: "10px 16px",
-            maxWidth: 380,
+            maxWidth: "min(380px, calc(100vw - 48px))",
             boxShadow: "0 8px 24px rgba(0,0,0,0.6)",
           }}
         >

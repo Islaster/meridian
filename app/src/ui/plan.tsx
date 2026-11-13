@@ -2,6 +2,7 @@ import type { CSSProperties, ReactNode } from "react";
 import type { Plan } from "@/models/plan";
 import { LINE, LINE_FAINT, INK } from "./theme";
 import { faint } from "./styles";
+import { useNarrow } from "./usenarrow";
 
 // A plan drawn: the outline, and a box for everything in it. What a box says is
 // decided by whoever draws the plan — the world map, a dungeon's rooms — as a Cell.
@@ -28,61 +29,68 @@ export default function PlanView({
   onPick: (id: string) => void;
 }) {
   const [pw, ph] = plan.size;
+  const narrow = useNarrow();
+  // a plan unit never shrinks below a thumb's width; a wide plan on a phone pans sideways instead
   return (
-    <div
-      style={{
-        position: "relative",
-        width: "100%",
-        aspectRatio: `${pw} / ${ph}`,
-        border: `1px solid ${LINE}`,
-        boxSizing: "border-box",
-      }}
-    >
-      {Object.entries(plan.boxes).map(([id, [x, y, w, h]]) => {
-        const c = cells[id];
-        if (!c || c.hidden) return null;
-        return (
-          <div
-            key={id}
-            data-tut={c.tut}
-            onClick={() => c.can && onPick(id)}
-            style={{
-              position: "absolute",
-              left: `${(x / pw) * 100}%`,
-              top: `${(y / ph) * 100}%`,
-              width: `${(w / pw) * 100}%`,
-              height: `${(h / ph) * 100}%`,
-              boxSizing: "border-box",
-              border: `1px ${c.out ? "dashed" : "solid"} ${
-                c.here || c.out ? INK : LINE
-              }`,
-              background: c.here ? "rgba(233,236,242,0.06)" : "transparent",
-              opacity: c.dim ? 0.4 : 1,
-              cursor: c.can ? "pointer" : "default",
-              padding: "4px 7px",
-              overflow: "hidden",
-              fontSize: "0.85em",
-              lineHeight: 1.3,
-            }}
-          >
-            {c.nested && <div style={inset} />}
-            {c.out && <div style={tag}>out</div>}
-            <div>
-              {c.here && "◉ "}
-              {c.title}
-            </div>
-            {c.note && <div style={faint}>{c.note}</div>}
-            {c.body && (
-              <div style={{ display: "flex", flexDirection: "column" }}>
-                {c.body}
+    <div style={{ overflowX: "auto" }}>
+      <div
+        style={{
+          position: "relative",
+          width: "100%",
+          minWidth: pw * UNIT_MIN,
+          aspectRatio: `${pw} / ${ph}`,
+          border: `1px solid ${LINE}`,
+          boxSizing: "border-box",
+        }}
+      >
+        {Object.entries(plan.boxes).map(([id, [x, y, w, h]]) => {
+          const c = cells[id];
+          if (!c || c.hidden) return null;
+          return (
+            <div
+              key={id}
+              data-tut={c.tut}
+              onClick={() => c.can && onPick(id)}
+              style={{
+                position: "absolute",
+                left: `${(x / pw) * 100}%`,
+                top: `${(y / ph) * 100}%`,
+                width: `${(w / pw) * 100}%`,
+                height: `${(h / ph) * 100}%`,
+                boxSizing: "border-box",
+                border: `1px ${c.out ? "dashed" : "solid"} ${
+                  c.here || c.out ? INK : LINE
+                }`,
+                background: c.here ? "rgba(233,236,242,0.06)" : "transparent",
+                opacity: c.dim ? 0.4 : 1,
+                cursor: c.can ? "pointer" : "default",
+                padding: "4px 7px",
+                overflow: "hidden",
+                fontSize: narrow ? "0.78em" : "0.85em",
+                lineHeight: 1.3,
+              }}
+            >
+              {c.nested && <div style={inset} />}
+              {c.out && <div style={tag}>out</div>}
+              <div>
+                {c.here && "◉ "}
+                {c.title}
               </div>
-            )}
-          </div>
-        );
-      })}
+              {c.note && <div style={faint}>{c.note}</div>}
+              {c.body && (
+                <div style={{ display: "flex", flexDirection: "column" }}>
+                  {c.body}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
+
+const UNIT_MIN = 44; // px per plan unit, at the least
 
 // the corner mark on a way out
 const tag: CSSProperties = {

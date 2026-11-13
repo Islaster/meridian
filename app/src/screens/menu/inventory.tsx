@@ -90,11 +90,18 @@ export default function Inventory({
   const picked = pick && state.bag.items[pick] ? pick : null;
 
   return (
-    <div style={{ display: "flex", gap: 48, alignItems: "flex-start" }}>
+    <div
+      style={{
+        display: "flex",
+        gap: 48,
+        alignItems: "flex-start",
+        flexWrap: "wrap", // the card drops under the list on a phone
+      }}
+    >
       <div
         style={{
           flex: 1,
-          minWidth: 320,
+          minWidth: "min(320px, 100%)",
           display: "flex",
           flexDirection: "column",
           gap: 16,

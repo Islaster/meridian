@@ -39,7 +39,7 @@ export default function GearDetail({
     : "found, never made";
 
   return (
-    <div style={{ ...rail, gap: 14, minWidth: 260 }}>
+    <div style={{ ...rail, gap: 14, flex: 1, minWidth: "min(260px, 100%)" }}>
       <div style={block}>
         <button
           style={{

@@ -17,7 +17,7 @@ export const wrap: CSSProperties = {
   background: BLACK,
   color: INK,
   font: FONT_BODY,
-  padding: "48px 24px",
+  padding: "clamp(20px, 5vw, 48px) clamp(16px, 3vw, 24px)",
   maxWidth: 720,
   margin: "0 auto",
   display: "flex",
@@ -45,7 +45,7 @@ export const overlay: CSSProperties = {
   background: "rgba(0,0,0,0.96)",
   color: INK,
   font: FONT_PANEL,
-  padding: "48px 24px",
+  padding: "clamp(20px, 5vw, 48px) clamp(16px, 3vw, 24px)",
   overflowY: "auto",
   zIndex: 40,
 };

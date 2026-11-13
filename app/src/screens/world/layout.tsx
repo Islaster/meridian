@@ -11,31 +11,32 @@ import { available } from "@/systems/actions";
 import { dur } from "@/systems/time";
 import PlanView, { type Cell } from "@/ui/plan";
 import { label, hollow, faint } from "@/ui/styles";
+import { useNarrow } from "@/ui/usenarrow";
 
 // The place you're in, drawn: what's here as boxes, and the ways out of it as boxes
 // marked OUT. The layout is navigation and nothing else — pick something that's here and
 // it opens under the layout; pick a way out and the layout becomes the next place.
 // A place lays itself out unless its file draws a plan by hand.
 
-const ROW = 4; // boxes per row in a self-drawn layout
 const W = 2.5,
   H = 1.4,
   GAP = 0.25;
-const auto = (here: string[], ways: string[]): Plan => {
+// a self-drawn layout: what's here in rows, then the ways out in rows; `cols` to a row
+const auto = (here: string[], ways: string[], cols: number): Plan => {
   const boxes: Record<string, Box> = {};
   let y = GAP;
   for (const band of [here, ways]) {
     band.forEach((id, i) => {
       boxes[id] = [
-        GAP + (i % ROW) * (W + GAP),
-        y + Math.floor(i / ROW) * (H + GAP),
+        GAP + (i % cols) * (W + GAP),
+        y + Math.floor(i / cols) * (H + GAP),
         W,
         H,
       ];
     });
-    if (band.length) y += Math.ceil(band.length / ROW) * (H + GAP) + GAP;
+    if (band.length) y += Math.ceil(band.length / cols) * (H + GAP) + GAP;
   }
-  return { size: [ROW * (W + GAP) + GAP, Math.max(y, H + 2 * GAP)], boxes };
+  return { size: [cols * (W + GAP) + GAP, Math.max(y, H + 2 * GAP)], boxes };
 };
 // a hand-drawn plan can't know who'll be standing here: whatever it didn't draw goes in rows under it
 const fill = (plan: Plan, missing: string[]): Plan => {
@@ -56,6 +57,7 @@ const fill = (plan: Plan, missing: string[]): Plan => {
 
 export default function Layout({ w }: { w: World }) {
   const { state, loc, sig, focus } = w;
+  const cols = useNarrow() ? 2 : 4; // a phone gets two to a row
   const people = present(state, loc);
   const actions = available(loc, state);
   const here = [
@@ -71,7 +73,7 @@ export default function Layout({ w }: { w: World }) {
         loc.plan,
         [...here, ...ways].filter((id) => !(id in loc.plan!.boxes))
       )
-    : auto(here, ways);
+    : auto(here, ways, cols);
 
   const cells: Record<string, Cell> = {};
   for (const id of people) {

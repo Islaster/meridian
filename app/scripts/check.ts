@@ -1,6 +1,8 @@
 // Every id the content names must exist, and every pointer id must be unique. Run after any data
 // edit (`npm run check`); it fails loud with the owner and the missing id. Warnings at the end are
 // hygiene, not failures: things that exist but nothing reaches.
+import { readdirSync } from "node:fs";
+import { join } from "node:path";
 import "../src/data/items";
 import "../src/data/skills";
 import "../src/data/classes";
@@ -299,6 +301,16 @@ const taught = new Set(PlayerClass.all().flatMap((c) => c.skills));
 for (const s of Skill.all())
   if (!taught.has(s.id))
     warnings.push(`skill ${s.id} is in no class's curriculum`);
+// ── filenames: lowercase, because the deploy's disk is case-sensitive and the Mac's isn't ──
+const walk = (dir: string): string[] =>
+  readdirSync(dir, { withFileTypes: true }).flatMap((e) =>
+    e.isDirectory() ? walk(join(dir, e.name)) : [join(dir, e.name)]
+  );
+for (const f of walk("src"))
+  need(
+    !/[A-Z]/.test(f),
+    `file ${f} has a capital in its name — rename it through git`
+  );
 
 if (warnings.length)
   console.warn(warnings.map((w) => `warn · ${w}`).join("\n"));

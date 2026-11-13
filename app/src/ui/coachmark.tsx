@@ -39,6 +39,11 @@ export default function Coachmark({
   }, [target]);
 
   const below = box ? box.bottom + 220 < window.innerHeight : true;
+  // the words keep to the screen: as wide as 440px allows, never off the right edge
+  const width = Math.min(440, window.innerWidth - 32);
+  const left = box
+    ? Math.max(16, Math.min(box.left, window.innerWidth - 16 - width))
+    : 0;
   return (
     <>
       <div
@@ -69,7 +74,8 @@ export default function Coachmark({
         style={{
           position: "fixed",
           zIndex: 61,
-          maxWidth: 440,
+          width,
+          boxSizing: "border-box",
           padding: 18,
           gap: 12,
           display: "flex",
@@ -78,11 +84,8 @@ export default function Coachmark({
           border: "1px solid rgba(233,236,242,0.28)",
           ...(box
             ? below
-              ? { left: box.left, top: box.bottom + PAD + 12 }
-              : {
-                  left: box.left,
-                  bottom: window.innerHeight - box.top + PAD + 12,
-                }
+              ? { left, top: box.bottom + PAD + 12 }
+              : { left, bottom: window.innerHeight - box.top + PAD + 12 }
             : { left: "50%", top: "50%", transform: "translate(-50%, -50%)" }),
         }}
       >

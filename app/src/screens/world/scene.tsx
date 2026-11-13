@@ -1,27 +1,20 @@
-import type { Town } from "./usetown";
-import { para, rail } from "../../ui/styles";
-import { describeNow } from "../../systems/presence";
-import { GLYPH } from "../../systems/quests";
-import { Quest } from "../../data/quests";
+import type { World } from "./useworld";
+import { para, rail, heading } from "@/ui/styles";
+import { GLYPH } from "@/systems/quests";
+import { Quest } from "@/data/quests";
+import { Log } from "@/screens/play/frame";
 
-export default function Scene({ t }: { t: Town }) {
-  const { state, loc, line, notes } = t;
+export default function Scene({ w }: { w: World }) {
+  const { state, loc, line } = w;
+  const tracked = Object.entries(state.quests).find(
+    ([, p]) => p.tracked && p.status === "taken"
+  );
   return (
     <>
       <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-        <h2
-          style={{
-            margin: 0,
-            fontFamily: "inherit",
-            fontWeight: 400,
-            fontSize: "1.4em",
-            letterSpacing: "0.06em",
-          }}
-        >
-          {loc.name}
-        </h2>
+        <h2 style={heading}>{loc.name}</h2>
         <p style={{ ...para, fontSize: "0.95em", opacity: 0.8 }}>
-          {describeNow(state, loc)}
+          {loc.describe}
         </p>
       </div>
       {loc.notices
@@ -33,30 +26,18 @@ export default function Scene({ t }: { t: Town }) {
           </p>
         ))}
       {line && <p style={{ ...para, opacity: 0.85 }}>“{line}”</p>}
-      {notes
-        .filter((n) => n.kind !== "complete")
-        .map((n, i) => (
-          <p key={i} style={{ ...para, opacity: 0.85, fontStyle: "italic" }}>
-            {n.text}
-          </p>
-        ))}
-      {Object.entries(state.quests)
-        .filter(([, p]) => p.tracked && p.status === "taken")
-        .map(([id]) => {
-          const q = Quest.get(id);
-          return (
-            <div
-              key={id}
-              data-tut="tracker"
-              style={{ ...rail, fontSize: "0.9em" }}
-            >
-              <span>
-                <span data-tut="mark">{GLYPH[q.kind]}</span> {q.name}
-              </span>
-              <span style={{ opacity: 0.7 }}>{q.objective}</span>
-            </div>
-          );
-        })}
+      <Log play={w.play} />
+      {tracked && (
+        <div data-tut="tracker" style={{ ...rail, fontSize: "0.9em" }}>
+          <span>
+            <span data-tut="mark">{GLYPH[Quest.get(tracked[0]).kind]}</span>{" "}
+            {Quest.get(tracked[0]).name}
+          </span>
+          <span style={{ opacity: 0.7 }}>
+            {Quest.get(tracked[0]).objective}
+          </span>
+        </div>
+      )}
     </>
   );
 }

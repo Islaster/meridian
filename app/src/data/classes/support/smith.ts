@@ -1,7 +1,7 @@
-import { PlayerClass } from "../../../models/class";
+import { PlayerClass } from "@/models/class";
 
 // ── The forge ──────────────────────────────────────────────────────────────
-export const apprenticeSmith = new PlayerClass(
+new PlayerClass(
   "apprentice-smith",
   "Apprentice smith",
   "inferiority",
@@ -10,14 +10,14 @@ export const apprenticeSmith = new PlayerClass(
     crafts: ["smith"],
     describe: "Bellows, buckets, and the odd mended pot.",
     master: "tobin-ashe",
+    level: 2,
   }
 );
-export const blacksmith = new PlayerClass("smith", "Blacksmith", "normal", {
+new PlayerClass("smith", "Blacksmith", "normal", {
   lineage: "support",
   crafts: ["smith"],
   describe: "Iron, fire, and the patience to do it again.",
   master: "tobin-ashe",
+  level: 4,
   floor: { str: 7 },
 });
-
-if (import.meta.hot) import.meta.hot.accept();

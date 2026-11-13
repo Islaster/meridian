@@ -1,6 +1,6 @@
 import type { WeaponType } from "./item";
-import { type Element } from "./class";
-import { register } from "./registry";
+import type { Element } from "./class";
+import { Registry, Entity } from "@/lib/registry";
 
 interface SkillOpts {
   cost: number;
@@ -10,17 +10,12 @@ interface SkillOpts {
   family?: string;
 }
 
-export class Skill {
-  static registry = new Map<string, Skill>();
-  static get(id: string): Skill {
-    const s = Skill.registry.get(id);
-    if (!s) throw new Error(`unknown skill: ${id}`);
-    return s;
-  }
+export class Skill extends Entity {
+  static registry = new Registry<Skill>("skill");
   id: string;
   name: string;
-  weapon: WeaponType | Element | "any";
-  cost: number; // ki
+  weapon: WeaponType | Element | "any"; // the medium it's practiced through
+  cost: number; // from the class pool — ki or mana
   power: number; // × weapon damage; 0 = not an attack
   heal: number;
   describe: string;
@@ -31,6 +26,7 @@ export class Skill {
     weapon: WeaponType | Element | "any",
     opts: SkillOpts
   ) {
+    super();
     this.id = id;
     this.name = name;
     this.weapon = weapon;
@@ -39,6 +35,6 @@ export class Skill {
     this.heal = opts.heal ?? 0;
     this.describe = opts.describe;
     this.family = opts.family;
-    register(Skill.registry, "skill", id, this);
+    Skill.registry.add(this);
   }
 }

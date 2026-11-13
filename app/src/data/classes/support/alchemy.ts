@@ -1,6 +1,6 @@
-import { PlayerClass } from "../../../models/class";
+import { PlayerClass } from "@/models/class";
 
-export const apprenticeAlchemist = new PlayerClass(
+new PlayerClass(
   "apprentice-alchemist",
   "Apprentice alchemist",
   "inferiority",
@@ -9,14 +9,14 @@ export const apprenticeAlchemist = new PlayerClass(
     crafts: ["alchemy"],
     describe: "Keeps the still lit and the measures honest. Mostly.",
     master: "hesper-quill",
+    level: 2,
   }
 );
-export const alchemist = new PlayerClass("alchemy", "Alchemist", "normal", {
+new PlayerClass("alchemy", "Alchemist", "normal", {
   lineage: "support",
   crafts: ["alchemy"],
   describe: "Measures. Everything is measures.",
   master: "hesper-quill",
+  level: 4,
   floor: { int: 7 },
 });
-
-if (import.meta.hot) import.meta.hot.accept();

@@ -1,44 +1,42 @@
-import { Material } from "../../models/item";
+import { Material } from "@/models/item";
 
-export const kelpFiber = new Material("kelp-fiber", "Kelp fiber", "plant", 4);
-export const saltCrystal = new Material(
+new Material("kelp-fiber", "Kelp fiber", "plant", 4);
+new Material(
   "salt-crystal",
   "Salt crystal",
   "ore",
   6
 );
-export const charcoal = new Material("charcoal", "Charcoal", "fuel", 1);
-export const ironOre = new Material("iron-ore", "Iron ore", "ore", 10);
-export const cinderOre = new Material("cinder-ore", "Cinder ore", "ore", 22);
-export const copperOre = new Material("copper-ore", "Copper ore", "ore", 3);
-export const tinOre = new Material("tin-ore", "Tin ore", "ore", 4);
-export const silverOre = new Material("silver-ore", "Silver ore", "ore", 40);
-export const ashGlass = new Material("ash-glass", "Ash glass", "ore", 30);
-export const wolfPelt = new Material("wolf-pelt", "Wolf pelt", "hide", 12);
-export const ratTail = new Material("rat-tail", "Rat tail", "part", 3);
-export const crabShell = new Material("crab-shell", "Crab shell", "shell", 14);
-export const goblinTooth = new Material(
+new Material("charcoal", "Charcoal", "fuel", 1);
+new Material("iron-ore", "Iron ore", "ore", 10);
+new Material("cinder-ore", "Cinder ore", "ore", 22);
+new Material("copper-ore", "Copper ore", "ore", 3);
+new Material("tin-ore", "Tin ore", "ore", 4);
+new Material("silver-ore", "Silver ore", "ore", 40);
+new Material("wolf-pelt", "Wolf pelt", "hide", 12);
+new Material("rat-tail", "Rat tail", "part", 3);
+new Material("crab-shell", "Crab shell", "shell", 14);
+new Material(
   "goblin-tooth",
   "Goblin tooth",
   "part",
   5
 );
-export const goblinEar = new Material("goblin-ear", "Goblin ear", "part", 6);
-export const wolfFang = new Material("wolf-fang", "Wolf fang", "part", 9);
-export const rimeGlass = new Material("rime-glass", "Rime glass", "ore", 12);
-export const bearHide = new Material("bear-hide", "Bear hide", "hide", 15);
-export const pineResin = new Material("pine-resin", "Pine resin", "plant", 6);
-export const frostCore = new Material(
+new Material("goblin-ear", "Goblin ear", "part", 6);
+new Material("wolf-fang", "Wolf fang", "part", 9);
+new Material("rime-glass", "Rime glass", "ore", 12);
+new Material("bear-hide", "Bear hide", "hide", 15);
+new Material("pine-resin", "Pine resin", "plant", 6);
+new Material(
   "frost-core",
   "Frost core",
   "part",
   60,
   "rare"
 );
-export const seaWormwood = new Material(
+new Material(
   "sea-wormwood",
   "Sea wormwood",
   "plant",
   5
 );
-if (import.meta.hot) import.meta.hot.accept();

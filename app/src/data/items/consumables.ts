@@ -1,7 +1,7 @@
-import { Consumable } from "../../models/item";
+import { Consumable } from "@/models/item";
 
 // the still
-export const minorPotion = new Consumable(
+new Consumable(
   "minor-potion",
   "Minor potion",
   "potion",
@@ -16,7 +16,7 @@ export const minorPotion = new Consumable(
   ],
   true
 ); // a simple steep: anyone's work
-export const potion = new Consumable("potion", "Potion", "potion", 45, 30).made(
+new Consumable("potion", "Potion", "potion", 45, 30).made(
   "alchemy",
   [
     { id: "sea-wormwood", qty: 2 },
@@ -27,15 +27,15 @@ export const potion = new Consumable("potion", "Potion", "potion", 45, 30).made(
 );
 
 // the counter — cooked, not brewed; no hearth to make them at yet
-export const driedFish = new Consumable(
+new Consumable(
   "dried-fish",
   "Dried fish",
   "food",
   8,
   3
 );
-export const rations = new Consumable("rations", "Rations", "food", 6, 5);
-export const mulledWine = new Consumable(
+new Consumable("rations", "Rations", "food", 6, 5);
+new Consumable(
   "mulled-wine",
   "Mulled wine",
   "food",

@@ -1,7 +1,8 @@
 import type { Grade } from "./item";
-import { TIER_COLORS, gateSize } from "../data/world/portals";
-import { register } from "./registry";
-import { HOP } from "../systems/time";
+import { TIER_COLORS } from "@/data/world/portals";
+import { HOP } from "@/systems/time";
+import { Registry, Entity } from "@/lib/registry";
+import type { Plan } from "./plan";
 
 export type LandKind = "dungeon" | "place"; // a dungeon is a gate; a place is just land
 export type RoomType =
@@ -17,8 +18,7 @@ export interface Room {
   name: string;
   type: RoomType;
   describe: string;
-  exits: string[];
-  floor?: number;
+  exits: string[]; // room ids, or a location id for the way out
   monsters?: string[];
   loot?: { id: string; qty?: number }[];
   trap?: {
@@ -31,6 +31,7 @@ export interface Room {
   harvest?: { id: string; qty?: number; hours?: number; text: string }; // what the room itself gives, once a day
 }
 
+// license ranks, lowest first — index 0 is "no license"
 export const RANKS = [
   "—",
   "F",
@@ -47,7 +48,6 @@ export const RANKS = [
   "GR",
   "EX",
 ] as const;
-export type Guard = 0 | 1 | 2 | 3 | 4 | 5;
 
 export interface Posting {
   level: number;
@@ -60,27 +60,21 @@ export interface Posting {
 }
 export interface Manager {
   kind: "guild" | "crown" | "private";
-  owner: string;
+  owner: string; // a city, or an npc for a private claim
   fee?: number;
-  guard?: Guard;
 }
 interface DungeonOpts {
   manager?: Manager;
   grade?: Grade;
-  dormancy?: number;
+  dormancy?: number; // days quiet after the boss falls
   kind?: LandKind;
-  tempo?: number;
+  tempo?: number; // town hours per hour inside — a gate's reality keeps its own time; land is 1
   pace?: number; // hours from one room to the next — a quarter-hour unless the rooms are far apart
+  plan?: Plan; // the rooms drawn as boxes; you see the ones you've stood in, and the doorways out of yours
 }
 
-export class Dungeon {
-  static registry = new Map<string, Dungeon>();
-  static get(id: string): Dungeon {
-    const d = Dungeon.registry.get(id);
-    if (!d) throw new Error(`unknown dungeon: ${id}`);
-    return d;
-  }
-
+export class Dungeon extends Entity {
+  static registry = new Registry<Dungeon>("dungeon");
   id: string;
   name: string;
   tier: number;
@@ -90,10 +84,10 @@ export class Dungeon {
   entrance: string;
   rooms: Record<string, Room>;
   dormancy: number;
-  pace: number; // hours per room step
   kind: LandKind;
-  tempo: number; // town hours per hour inside — a gate's reality keeps its own time; land is 1
-
+  tempo: number;
+  pace: number;
+  plan?: Plan;
   constructor(
     id: string,
     name: string,
@@ -102,6 +96,7 @@ export class Dungeon {
     rooms: Room[],
     opts: DungeonOpts = {}
   ) {
+    super();
     this.id = id;
     this.name = name;
     this.tier = tier;
@@ -114,18 +109,13 @@ export class Dungeon {
     this.kind = opts.kind ?? "place";
     this.tempo = opts.tempo ?? 1;
     this.pace = opts.pace ?? HOP;
-    register(Dungeon.registry, "dungeon", id, this);
+    this.plan = opts.plan;
+    Dungeon.registry.add(this);
   }
   get known(): boolean {
-    return !!this.manager;
+    return !!this.manager; // on the Guild's books
   }
-
   get color() {
     return TIER_COLORS[this.tier];
-  }
-
-  get gate() {
-    const { h, w } = gateSize(this.tier);
-    return `${this.color} gate, ${h} feet tall and ${w} wide, thin as a blade`;
   }
 }

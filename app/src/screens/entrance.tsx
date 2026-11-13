@@ -1,9 +1,11 @@
 import { useState } from "react";
-import Passage from "../ui/passage";
-import SkipButton from "../ui/skipbutton";
-import { SERIF, MenuButton } from "../ui/cards";
-import { useGame } from "../state/gamecontext";
-import { giveItem, equip } from "../systems/inventory";
+import Passage from "@/ui/passage";
+import SkipButton from "@/ui/skipbutton";
+import MenuButton from "@/ui/menubutton";
+import { useGame } from "@/state/game";
+import { giveItem, equip } from "@/systems/inventory";
+import { stage } from "@/ui/styles";
+import { FONT_READ } from "@/ui/theme";
 
 const BEATS: string[][] = [
   [
@@ -22,7 +24,7 @@ const BEATS: string[][] = [
     "\"Guild's open at eight, if you're the kind that reads the fine print.\"",
   ],
 ];
-
+// a LCK 15 start: the guard hands over Hale's blade before Fenn's men collect it
 const LUCK_BEAT = [
   "His eyes go to your empty hands, then to a rack of oilcloth bundles behind him.",
   '"Confiscated. Guild rule — no steel past the square for a debtor. Osric\'s is the one on the end." He weighs something. "Fenn\'s men come for the lot at noon. Been on that rack a month."',
@@ -31,13 +33,14 @@ const LUCK_BEAT = [
 ];
 
 export default function Entrance({ onDone }: { onDone: () => void }) {
-  const { state, changeState, commit } = useGame();
+  const { state, update, commit } = useGame();
   const [i, setI] = useState(0);
   const [done, setDone] = useState(false);
   const [skip, setSkip] = useState(false);
-  const [awarded, setAwarded] = useState(false);
-  const lucky = state.player.stats.lck === 15;
-  const beats = lucky ? [BEATS[0], BEATS[1], LUCK_BEAT, BEATS[2]] : BEATS;
+  const beats =
+    state.player.stats.lck === 15
+      ? [BEATS[0], BEATS[1], LUCK_BEAT, BEATS[2]]
+      : BEATS;
   const last = i === beats.length - 1;
   const next = () => {
     setI(i + 1);
@@ -45,44 +48,26 @@ export default function Entrance({ onDone }: { onDone: () => void }) {
     setSkip(false);
   };
   const enter = () => {
-    changeState("world", { ...state.world, area: "town-gate" });
+    update({ ...state, world: { ...state.world, area: "town-gate" } });
     commit();
     onDone();
   };
-  const award = () => {
-    if (awarded) return;
-    setAwarded(true);
-    changeState("bag", giveItem(state.bag, "hales-blade"));
-    changeState("player", equip(state.player, "hales-blade"));
-  };
-
   return (
-    <div
-      style={{
-        position: "relative",
-        minHeight: "100vh",
-        background: "#000",
-        color: "rgba(233,236,242,0.92)",
-        font: `400 clamp(16px, 1.8vw, 22px) ${SERIF}`,
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 28,
-        padding: 24,
-        boxSizing: "border-box",
-      }}
-    >
+    <div style={{ ...stage, font: FONT_READ }}>
       <Passage
         key={i}
         lines={beats[i]}
         complete={skip}
         onDone={() => {
           setDone(true);
-          if (beats[i] === LUCK_BEAT) award();
+          if (beats[i] === LUCK_BEAT && !state.bag.items["hales-blade"])
+            update({
+              ...state,
+              bag: giveItem(state.bag, "hales-blade"),
+              player: equip(state.player, "hales-blade"),
+            });
         }}
       />
-
       {done ? (
         <MenuButton
           label={last ? "Enter the gate" : "Continue"}

@@ -1,4 +1,4 @@
-import { Quest } from "../../../models/quest";
+import { Quest } from "@/models/quest";
 
 new Quest(
   "the-tide-cave",
@@ -14,5 +14,3 @@ new Quest(
     next: "return-the-loan",
   }
 );
-
-if (import.meta.hot) import.meta.hot.accept();

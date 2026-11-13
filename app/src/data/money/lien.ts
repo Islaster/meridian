@@ -1,4 +1,4 @@
-import { SEASON, YEAR } from "../world/calendar";
+import { SEASON, YEAR } from "@/data/world/calendar";
 
 export const LIEN = {
   amount: 12000,

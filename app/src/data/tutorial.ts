@@ -1,4 +1,7 @@
-import type { GameState } from "../state/types";
+import type { GameState } from "@/state/types";
+import { firstOath } from "@/systems/classes";
+import { carried } from "@/systems/inventory";
+import { isGear } from "@/models/item";
 
 export type Pointer =
   | { kind: "exit"; id: string }
@@ -34,42 +37,18 @@ const at = (key: string) => `[data-tut="${key}"]`;
 
 const has = (s: GameState, f: string) => s.done.includes(f);
 const menu = (p: Pointer) => p.kind === "menu"; // the journal stays reachable in every step
-const idle = (p: Pointer) => p.kind === "wait" || p.kind === "rest";
-const status = (s: GameState, id: string) => s.quests[id]?.status;
-const doneOr = (id: string) => (s: GameState) =>
-  status(s, id) === "complete" || has(s, "inducted");
-const action = (prefix: string) => (p: Pointer) =>
-  p.kind === "action" && p.id.startsWith(prefix);
-const walk = (p: Pointer) => p.kind === "exit" || idle(p) || menu(p);
 
-// one explainer, once: each step is a quest of "A master's word", and the line is the truth
+// the hall's masters: one explainer, once, when the first oath opens
 const MASTER: Step[] = [
   {
-    id: "meet",
-    text: "Six masters still teach in Caldermouth. Pick one, go where they teach — the ✦ leads — and hear the terms.",
-    done: doneOr("a-masters-word"),
-    allow: (_, p) => walk(p) || p.kind === "npc",
-  },
-  {
-    id: "practice",
-    text: "Nobody teaches a stranger. Practice where they teach — a session is four hours, two count a day — until they look up. Sleep when the day runs out.",
-    done: doneOr("earn-the-eye"),
-    allow: (_, p) => walk(p) || action("practice-")(p),
-  },
-  {
-    id: "errands",
-    text: "They've noticed. Now they'll ask for something, then something else. The journal tracks it; the ✦ leads.",
-    done: doneOr("run-the-errands"),
-  },
-  {
     id: "oath",
-    text: "Terms named. Take the oath — the short words open the common class now. A trial and a stat floor buy the trained one instead; that road stays open.",
-    done: doneOr("the-short-words"),
-    allow: (_, p) => walk(p) || action("oath-")(p),
+    text: `Level ${firstOath()}: the first of the hall's oaths opens. The six who keep it each teach a short name and a full one, and every name opens at its own level — the pointer in their room says which, and the full one asks a stat floor besides. Find them in their rooms off the floor; they move with the hour, and some afternoons they're in town. The ✦ leads.`,
+    done: (s) => has(s, "inducted") || has(s, "tut:oath"),
   },
   {
     id: "class",
-    text: "A name for what you are. Your master's quests are in the journal now — each one opens something the oath didn't.",
+    when: (s) => has(s, "inducted"),
+    text: "A name for what you are. Your master's quests are in the journal now — each one opens something the oath didn't. Rarer masters are out in the world, and they're earned the long way.",
     done: (s) => has(s, "tut:class"),
   },
 ];
@@ -189,12 +168,12 @@ export const TUTORIALS: Tutorial[] = [
   {
     id: "equip",
     title: "Something to wield",
-    when: (s) => (s.bag.equipment ?? []).length > 0,
+    when: (s) => carried(s.bag).some(({ item }) => isGear(item)),
     steps: [
       {
         id: "equip",
         text: "You're carrying something you could wield. Open the menu, go to Inventory, and press Equip beside it. Nothing you carry does anything until it's in your hands.",
-        done: (s) => !!s.player.equipment?.mainWeapon,
+        done: (s) => !!s.player.equipment.weapon,
         allow: (_, p) => menu(p),
       },
     ],
@@ -202,7 +181,7 @@ export const TUTORIALS: Tutorial[] = [
   {
     id: "master",
     title: "A master's word",
-    when: (s) => s.quests["a-masters-word"]?.status === "taken",
+    when: (s) => s.player.level >= firstOath() && !!s.quests["a-masters-word"],
     steps: MASTER,
   },
 ];

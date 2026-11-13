@@ -1,8 +1,9 @@
-import { useState, type CSSProperties } from "react";
-import { SERIF, MenuButton } from "../../ui/cards";
+import { useState } from "react";
+import MenuButton from "@/ui/menubutton";
+import { stage, small } from "@/ui/styles";
+import { FONT_CARD } from "@/ui/theme";
 
 type Stats = Record<string, number>;
-
 const DESC: Record<string, string> = {
   str: "Carries more, hits harder.",
   end: "Health, and what armor can bear.",
@@ -13,55 +14,38 @@ const DESC: Record<string, string> = {
   lck: "What the deep decides to give you.",
   cha: "How doors, and people, open to you.",
 };
+const btn = { ...small, width: 32, height: 32, padding: 0 };
 
-const wrap: CSSProperties = {
-  position: "relative",
-  minHeight: "100vh",
-  background: "#000",
-  color: "rgba(233,236,242,0.92)",
-  font: `400 clamp(15px, 1.6vw, 20px) ${SERIF}`,
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  justifyContent: "center",
-  gap: 14,
-  padding: 24,
-};
-const row: CSSProperties = {
-  display: "flex",
-  alignItems: "center",
-  gap: 16,
-  width: "min(640px, 90vw)",
-};
-const btn: CSSProperties = {
-  font: "inherit",
-  color: "inherit",
-  background: "transparent",
-  border: "1px solid rgba(233,236,242,0.28)",
-  width: 32,
-  height: 32,
-  cursor: "pointer",
-};
-
-interface Props {
+// Ten points over the base sheet; masters will read it.
+export default function StatsStep({
+  base,
+  pool = 10,
+  onDone,
+}: {
   base: Stats;
   pool?: number;
   onDone: (stats: Stats) => void;
-}
-
-export default function StatsStep({ base, pool = 10, onDone }: Props) {
+}) {
   const [stats, setStats] = useState<Stats>({ ...base });
   const left =
     pool - Object.keys(stats).reduce((s, k) => s + (stats[k] - base[k]), 0);
   const adjust = (k: string, d: number) =>
     setStats((s) => ({ ...s, [k]: s[k] + d }));
   return (
-    <div style={wrap}>
+    <div style={{ ...stage, font: FONT_CARD, gap: 14 }}>
       <p style={{ margin: "0 0 12px", letterSpacing: "0.1em" }}>
         Points to spend: {left}
       </p>
       {Object.keys(stats).map((k) => (
-        <div key={k} style={row}>
+        <div
+          key={k}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 16,
+            width: "min(640px, 90vw)",
+          }}
+        >
           <span style={{ width: 48, letterSpacing: "0.15em" }}>
             {k.toUpperCase()}
           </span>

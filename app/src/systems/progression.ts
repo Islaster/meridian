@@ -1,9 +1,10 @@
-import type { GameState } from "../state/types";
+import type { Player } from "@/state/types";
 
 export const xpToNext = (level: number) =>
   Math.round(20 * Math.pow(level, 1.5)); // placeholder curve — tune on the sheet
 
-export function levelUp(p: GameState["player"]): GameState["player"] {
+// xp in, levels out; a level mends you and hands out points
+function levelUp(p: Player): Player {
   let out = p;
   while (out.xp >= xpToNext(out.level))
     out = {
@@ -17,3 +18,5 @@ export function levelUp(p: GameState["player"]): GameState["player"] {
     };
   return out;
 }
+export const gainXp = (p: Player, xp: number) =>
+  xp > 0 ? levelUp({ ...p, xp: p.xp + xp }) : p;

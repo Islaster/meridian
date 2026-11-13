@@ -1,4 +1,4 @@
-import { Quest } from "../../../models/quest";
+import { Quest } from "@/models/quest";
 
 new Quest(
   "wolves-on-the-kiln-road",
@@ -15,5 +15,3 @@ new Quest(
       'Tamsin counts the fangs, not the coin. "They\'ll be back inside a week. They always are."',
   }
 );
-
-if (import.meta.hot) import.meta.hot.accept();

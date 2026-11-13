@@ -1,4 +1,4 @@
-import { register } from "./registry";
+import { Registry, Entity } from "@/lib/registry";
 
 export const GRADES = [
   "inferiority",
@@ -17,24 +17,9 @@ export const WEAPON_TYPES = [
   "club",
   "knife",
 ] as const;
-const SLOT_OF: Partial<Record<Subgroup, Slot>> = {
-  helmet: "head",
-  headband: "head",
-  jerkin: "armor",
-  robe: "armor",
-  cloak: "back",
-  gloves: "hands",
-  boots: "boots",
-  shield: "offhand",
-  ring: "ring",
-  sword: "weapon",
-  axe: "weapon",
-  bow: "weapon",
-  staff: "weapon",
-  club: "weapon",
-};
 
 export type Grade = (typeof GRADES)[number];
+export type WeaponType = (typeof WEAPON_TYPES)[number];
 export type Kind =
   | "weapon"
   | "armor"
@@ -43,7 +28,6 @@ export type Kind =
   | "material"
   | "tool"
   | "quest";
-export type WeaponType = (typeof WEAPON_TYPES)[number];
 export type ArmorGroup =
   | "helmet"
   | "headband"
@@ -67,6 +51,7 @@ export type MaterialGroup =
 export type Subgroup = WeaponType | ArmorGroup | SupplyGroup | MaterialGroup;
 export type Tag = Kind | Subgroup;
 export type Craft = "smith" | "tailor" | "fletch" | "alchemy" | "cook";
+// where a piece is worn; the player's equipment record is keyed by these, plus "ring2"
 export type Slot =
   | "head"
   | "armor"
@@ -76,13 +61,33 @@ export type Slot =
   | "ring"
   | "offhand"
   | "weapon";
-// A perk is a mechanic: something the engine applies in play and can spell out in words. One kind so far.
+
+const SLOT_OF: Partial<Record<Subgroup, Slot>> = {
+  helmet: "head",
+  headband: "head",
+  jerkin: "armor",
+  robe: "armor",
+  clothes: "armor",
+  cloak: "back",
+  gloves: "hands",
+  boots: "boots",
+  shield: "offhand",
+  ring: "ring",
+  sword: "weapon",
+  axe: "weapon",
+  bow: "weapon",
+  staff: "weapon",
+  club: "weapon",
+  knife: "weapon",
+};
+
+// A perk is a mechanic: something the engine applies in play and can spell out in words.
 export type Perk = { kind: "scaling"; stat: string; per: number; from: number }; // damage grows with a stat
 
 export interface Recipe {
   craft: Craft;
   materials: { id: string; qty: number }[];
-  basic?: boolean;
+  basic?: boolean; // anyone can make it; otherwise the craft's own class
 }
 interface GearOpts {
   reqLevel?: number;
@@ -93,20 +98,14 @@ interface GearOpts {
   perks?: Perk[];
 }
 
-export class Item {
-  static registry = new Map<string, Item>();
-  static get(id: string): Item {
-    const it = Item.registry.get(id);
-    if (!it) throw new Error(`unknown item: ${id}`);
-    return it;
-  }
-
+export class Item extends Entity {
+  static registry = new Registry<Item>("item");
   id: string;
   name: string;
-  tags: Tag[];
+  tags: Tag[]; // the first tag is the kind, the second the group
   grade: Grade;
   price: number;
-  describe?: string; // what it looks like — flavor only, never a rule
+  describe?: string;
   recipe?: Recipe;
   constructor(
     id: string,
@@ -115,26 +114,23 @@ export class Item {
     grade: Grade = "normal",
     price = 0
   ) {
+    super();
     this.id = id;
     this.name = name;
     this.tags = tags;
     this.grade = grade;
     this.price = price;
-    register(Item.registry, "item", id, this);
-  }
-  has(tag: Tag): boolean {
-    return this.tags.includes(tag);
+    Item.registry.add(this);
   }
   get kind(): Kind {
     return this.tags[0] as Kind;
-  } // first tag is the kind, by convention
-  get slot(): Slot | undefined {
-    for (const t of this.tags) {
-      const s = SLOT_OF[t as Subgroup];
-      if (s) return s;
-    }
   }
-
+  get group(): Subgroup | undefined {
+    return this.tags[1] as Subgroup | undefined;
+  }
+  get slot(): Slot | undefined {
+    return this.group ? SLOT_OF[this.group] : undefined;
+  }
   made(craft: Craft, materials: Recipe["materials"], basic = false) {
     this.recipe = { craft, materials, basic };
     return this;
@@ -145,22 +141,20 @@ export class Weapon extends Item {
   damage: number;
   reqLevel: number;
   reqStats: Record<string, number>;
-  scaling?: { stat: string; per: number; from: number };
   perks: Perk[];
   constructor(
     id: string,
     name: string,
     type: WeaponType,
     damage: number,
-    opts: GearOpts & { scaling?: Weapon["scaling"] } = {}
+    opts: GearOpts = {}
   ) {
     super(id, name, ["weapon", type], opts.grade, opts.price);
     this.damage = damage;
     this.reqLevel = opts.reqLevel ?? 1;
     this.reqStats = opts.reqStats ?? {};
-    this.scaling = opts.scaling;
-    this.describe = opts.describe ?? "";
     this.perks = opts.perks ?? [];
+    this.describe = opts.describe;
   }
   get weaponType(): WeaponType {
     return this.tags[1] as WeaponType;
@@ -184,7 +178,7 @@ export class Armor extends Item {
     this.reqLevel = opts.reqLevel ?? 1;
     this.reqStats = opts.reqStats ?? {};
     this.perks = opts.perks ?? [];
-    this.describe = opts.describe ?? "";
+    this.describe = opts.describe;
   }
 }
 
@@ -242,3 +236,8 @@ export class QuestItem extends Item {
     super(id, name, ["quest"]);
   }
 }
+
+// gear is anything worn: the two classes with a slot, stats and perks
+export type Gear = Weapon | Armor;
+export const isGear = (it: Item | undefined): it is Gear =>
+  it instanceof Weapon || it instanceof Armor;

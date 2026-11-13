@@ -1,4 +1,4 @@
-import { Skill } from "../../models/skill";
+import { Skill } from "@/models/skill";
 
 // ── Soldier · foundational ─────────────────────────────────────────────────
 new Skill("straight-cut", "Straight cut", "sword", {
@@ -34,5 +34,3 @@ new Skill("heavy-cut", "Heavy cut", "sword", {
   family: "weight",
   describe: "Everything behind one stroke.",
 });
-
-if (import.meta.hot) import.meta.hot.accept();

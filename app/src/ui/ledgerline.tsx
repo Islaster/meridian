@@ -1,4 +1,4 @@
-import { SERIF } from "./cards";
+import { SERIF } from "./theme";
 export default function LedgerLine({
   children,
 }: {

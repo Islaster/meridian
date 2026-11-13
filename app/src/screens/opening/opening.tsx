@@ -29,7 +29,8 @@ import {
   type PlateUrls,
 } from "./plates";
 import { FX } from "./fx";
-import { IntertitleCard, TitleOverlay, SERIF } from "../../ui/cards";
+import { IntertitleCard, TitleOverlay } from "./cards";
+import { SERIF } from "@/ui/theme";
 import type {
   CueName,
   FrameContext,
@@ -366,10 +367,7 @@ export default function Opening({
   }, [runId, platesKey, pixelScale, seed]);
 
   useEffect(() => {
-    if (!menuReady) {
-      setMenuIn(false);
-      return;
-    }
+    if (!menuReady) return; // a new run already reset menuIn with menuReady
     const id = window.setTimeout(() => setMenuIn(true), menuDelay * 1000);
     return () => window.clearTimeout(id);
   }, [menuReady, menuDelay]);

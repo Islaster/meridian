@@ -1,11 +1,11 @@
-import { Quest } from "../../../../../models/quest";
-import { learn } from "../../../../../systems/classes";
+import { Quest } from "@/models/quest";
+import { learn } from "@/systems/classes";
 
 new Quest(
   "deliver-the-notice",
   "side",
   "Deliver the notice",
-  "Deliver the Guild's notice to Ira Vell at the sword yard, off the square.",
+  "Deliver the Guild's notice to Ira Vell. He keeps the hall's yard, and the sword yard off the square some afternoons.",
   { kind: "talk", npc: "ira-vell" },
   {
     chain: "A notice for the yard",
@@ -16,97 +16,10 @@ new Quest(
 );
 
 new Quest(
-  "meet-ira-vell",
-  "side",
-  "The name in the journal",
-  "Osric's journal names Ira Vell — the last teacher who ever stood in the hall. Find him at the sword yard.",
-  { kind: "talk", npc: "ira-vell" },
-  {
-    chain: "Two breaths",
-    visible: { complete: ["the-tide-cave"] },
-    narration:
-      'Ira looks at you the way the guard looked at the letter — reading. "Osric said you\'d come. Said the hall would open again, too." He nods at the packed earth. "I don\'t teach in dead rooms, and the yard doesn\'t take my word for anything. Go and stand in it."',
-    next: "practice-ira-vell",
-    set: ["met:ira-vell", "met"],
-  }
-);
-new Quest(
-  "practice-ira-vell",
-  "side",
-  "The yard, every day",
-  "Practice in the sword yard. Two sessions, and Ira will have looked up.",
-  { kind: "flag", flag: "noticed:ira-vell" },
-  {
-    chain: "Two breaths",
-    track: [{ action: "practice-ira-vell" }],
-    narration:
-      '"You again." Ira watches a full form through before he speaks. "Carry something for me, and we\'ll see."',
-    next: "errand-ira-vell",
-  }
-);
-
-new Quest(
-  "errand-ira-vell",
-  "side",
-  "Word to the gate",
-  "Carry Ira's word to Tamsin Roake at the gate: the yard pays its dues in sweat.",
-  { kind: "talk", npc: "tamsin-roake" },
-  {
-    chain: "Two breaths",
-    narration:
-      'Tamsin snorts. "He\'s said that for twenty years. Tell him the gate still stands." You will.',
-    next: "errand-ira-vell-2",
-  }
-);
-
-new Quest(
-  "errand-ira-vell-2",
-  "side",
-  "The yard's receipt",
-  "Fetch the yard's dues receipt from Pell Marrow at the Guild, on the square.",
-  { kind: "flag", flag: "act:yard-receipt" },
-  { chain: "Two breaths", next: "errand-ira-vell-3" }
-);
-
-new Quest(
-  "errand-ira-vell-3",
-  "side",
-  "Back to Ira",
-  "Bring the receipt back to Ira at the sword yard.",
-  { kind: "talk", npc: "ira-vell" },
-  {
-    chain: "Two breaths",
-    set: ["errands:ira-vell", "errands"],
-    narration:
-      'Ira reads it the way he reads everything, then folds it into his belt. "That\'s twice. Say the words, if you want them."',
-    next: "oath-ira-vell",
-  }
-);
-
-new Quest(
-  "oath-ira-vell",
-  "side",
-  "The short words",
-  "Take Ira's oath — the short one. Soldier.",
-  { kind: "flag", flag: "sworn:ira-vell" },
-  {
-    chain: "Two breaths",
-    track: [
-      {
-        any: [{ action: "oath-ira-vell-lesser" }, { action: "oath-ira-vell" }],
-      },
-    ],
-    narration:
-      '"Soldier," Ira says, which is not a compliment, and not an insult either. "The rest is earned."',
-    next: "first-forms",
-  }
-);
-
-new Quest(
   "first-forms",
   "side",
   "First forms",
-  "Train at the sword yard until Ira is satisfied.",
+  "Train in the hall's yard until Ira is satisfied.",
   { kind: "flag", flag: "act:train-forms" },
   {
     chain: "Two breaths",
@@ -114,7 +27,16 @@ new Quest(
     reward: { xp: 50 },
     onComplete: learn("second-breath", "catch-breath"),
     epilogue:
-      "\"That'll do for a start,\" Ira says, which from him is a speech. The bar on your Ledger has a second line now, and a name for what it holds. \"You've a hall with empty racks and a paper on it that isn't yours. Fix the paper. Then we'll talk about the racks.\"",
+      '"That\'ll do for a start," Ira says, which from him is a speech. The bar on your Ledger has a second line now, and a name for what it holds.',
+    actions: [
+      {
+        at: "hall-yard",
+        id: "train-forms",
+        hours: 4,
+        label: "Train until dusk",
+        text: "Forms until your arms shake, then forms until they stop. Ira corrects your feet twice and says nothing else all afternoon.",
+      },
+    ],
   }
 );
 
@@ -133,9 +55,8 @@ new Quest(
       '"Everything behind one stroke," Ira says. "Not most of it. Everything." You feel the difference in your shoulders for a week.',
     actions: [
       {
-        at: "sword-yard",
+        at: "hall-yard",
         id: "train-weight",
-        quest: "the-weight",
         hours: 4,
         label: "Carry the weight",
         text: "A sack of wet sand on a pole, the length of the yard and back, until the pole is the only thing you can feel. Ira counts nothing out loud. Near the end he takes the pole, hands you a blade, and says one word: again.",
@@ -143,24 +64,3 @@ new Quest(
     ],
   }
 );
-
-new Quest(
-  "bring-ira-home",
-  "main",
-  "The first rack",
-  "The deed is yours and the quarters are built. Go home and open the hall for him.",
-  { kind: "visit", location: "hall" },
-  {
-    chain: "The first rack",
-    visible: {
-      complete: ["first-forms", "settle-the-lien"],
-      flags: ["master:ira-vell", "built:hall-quarters"],
-    },
-    set: ["resident:ira-vell"],
-    reward: { xp: 40 },
-    epilogue:
-      "By the time you reach the hall the far quarters have a lamp in them, and the first rack on the wall holds blades that are not yours. Ira keeps the yard by day. Nights, the hall has a master in it again — the first since Osric.",
-  }
-);
-
-if (import.meta.hot) import.meta.hot.accept();

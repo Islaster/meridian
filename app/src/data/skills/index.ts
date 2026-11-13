@@ -2,4 +2,5 @@ import "./sword";
 import "./bow";
 import "./tide";
 import "./ember";
-export * from "../../models/skill";
+import "./dream";
+export * from "@/models/skill";

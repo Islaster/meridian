@@ -1,8 +1,9 @@
-import { type GameState } from "../state/types";
+import type { GameState } from "@/state/types";
 import type { Requirement } from "./quest";
-import { HOP } from "../systems/time";
-import { type Craft } from "./item";
-import { register } from "./registry";
+import type { Plan } from "./plan";
+import type { Craft } from "./item";
+import { HOP } from "@/systems/time";
+import { Registry, Entity } from "@/lib/registry";
 
 export interface Exit {
   to: string;
@@ -10,59 +11,49 @@ export interface Exit {
 }
 export interface Hours {
   open: number;
-  close: number;
-} // 24h clock
-
+  close: number; // 24h clock
+}
 export interface Loadout {
   id: string;
   name: string;
   blurb: string;
   items: { id: string; qty?: number }[];
 }
-
 export interface Shop {
   name?: string; // the pointer's label — "The brass window"
   stock: string[];
-  cut: number;
-  ranked?: Record<number, string[]>;
+  cut: number; // the house's share of a sale
+  ranked?: Record<number, string[]>; // more stock at a license rank
+}
+export interface Board {
+  onLocked?: (s: GameState) => { say: string; next?: GameState }; // what happens when someone without a card tries it
+}
+export interface Roam {
+  monsters: string[];
+  when: "day" | "night";
+  chance: number;
+  text: string;
+}
+export interface Bench {
+  craft: Craft;
+  label: string; // the pointer — opens the craft panel
 }
 
+// A pointer in a scene. Browsing is free; activating costs what it says.
 export interface Action {
   id: string;
   label: string;
   text: string;
-  quest?: string;
-  stat?: { name: string; reqLvl: number };
+  quest?: string; // only while this quest is taken
   hours?: number;
   gold?: number;
-  fight?: string[]; // monster ids: this pointer starts a battle; the rest of the action fires on a win
+  fight?: string[]; // monster ids: this pointer starts a battle; the rest fires on a win
   effect?: (s: GameState) => GameState;
-  requires?: Requirement; // general gate; `quest` stays for the "while this quest is taken" case
+  requires?: Requirement; // greys with the first unmet line
   oath?: string; // swearing to a master — swapping while sworn asks first
   repeat?: boolean; // doesn't spend act:<id> — can be done again
 }
-
-export type Placed = Action & { at: string }; // a pointer declared by a quest or npc, placed in a scene
-
-export interface After {
-  when: string;
-  describe: string;
-} // once `when` is in done, the place reads like this
-
-export interface Upgrade {
-  id: string; // sets built:${id}
-  name: string;
-  opens: string; // the system it unlocks — shown on the pointer
-  gold?: number;
-  items?: { id: string; qty: number }[];
-  after?: string; // rung it builds on
-  hours?: number;
-  text: string;
-}
-
-export interface Board {
-  onLocked?: (s: GameState) => { say: string; next?: GameState };
-}
+export type Placed = Action & { at: string }; // declared by a quest or npc, placed in a scene
 
 export interface Shift {
   at: string; // where
@@ -71,118 +62,98 @@ export interface Shift {
   days?: number[]; // weekdays (0 = the first day of the week); absent = every day
 }
 
-export interface NpcOpts {
-  offers?: string[];
-  sells?: string[];
-  lends?: Loadout[];
-  home?: { location: string; when: string };
-  hours?: Hours; // when they're at their post; undefined = always
-  actions?: Placed[];
+interface LocationOpts {
+  npcs?: string[]; // who is posted here while it's open
+  hours?: Hours; // undefined = always open
+  requires?: string; // the quest item that opens the door
+  canRest?: boolean;
+  shop?: Shop;
+  board?: Board;
+  bench?: Bench;
+  deed?: string; // the flag that makes it yours
+  actions?: Action[];
+  notices?: ((s: GameState) => string | null)[]; // lines shown under the description when they apply
+  roam?: Roam;
+  plan?: Plan; // the layout, drawn by hand: boxes for its exits and for what's in it (people, "shop", "board", "bench", actions); without one the screen lays it out itself
 }
 
-export class Location {
-  static registry = new Map<string, Location>();
-  static get(id: string): Location {
-    const l = Location.registry.get(id);
-    if (!l) throw new Error(`unknown location: ${id}`);
-    return l;
-  }
+export class Location extends Entity {
+  static registry = new Registry<Location>("location");
   id: string;
   name: string;
   describe: string;
   exits: Required<Exit>[];
   npcs: string[];
-  hours?: Hours; // undefined = always open
-  requires?: string; // quest item that opens it — the door declares its want
+  hours?: Hours;
+  requires?: string;
   canRest: boolean;
   shop?: Shop;
-  actions: Action[];
-  after: After[];
-  deed?: string;
-  upgrades: Upgrade[];
-  bench?: { craft: Craft; label: string };
-  notices: ((s: GameState) => string | null)[];
   board?: Board;
-  roam?: {
-    monsters: string[];
-    when: "day" | "night";
-    chance: number;
-    text: string;
-  };
+  bench?: Bench;
+  deed?: string;
+  actions: Action[];
+  notices: ((s: GameState) => string | null)[];
+  roam?: Roam;
+  plan?: Plan;
   constructor(
     id: string,
     name: string,
     describe: string,
     exits: Exit[],
-
-    opts: {
-      npcs?: string[];
-      hours?: Hours;
-      requires?: string;
-      canRest?: boolean;
-      shop?: Shop;
-      actions?: Action[];
-      after?: After[];
-      deed?: string;
-      upgrades?: Upgrade[];
-      notices?: ((s: GameState) => string | null)[];
-      board?: Board;
-      bench?: { craft: Craft; label: string }; // somewhere to make things — the pointer opens the craft panel
-      roam?: {
-        monsters: string[];
-        when: "day" | "night";
-        chance: number;
-        text: string;
-      };
-    } = {}
+    opts: LocationOpts = {}
   ) {
+    super();
     this.id = id;
     this.name = name;
     this.describe = describe;
-    this.exits = exits.map((e) => ({ to: e.to, hours: e.hours || HOP }));
+    this.exits = exits.map((e) => ({ to: e.to, hours: e.hours ?? HOP }));
     this.npcs = opts.npcs ?? [];
     this.hours = opts.hours;
     this.requires = opts.requires;
     this.canRest = opts.canRest ?? false;
     this.shop = opts.shop;
-    this.actions = opts.actions ?? [];
-    this.after = opts.after ?? [];
-    this.deed = opts.deed;
-    this.upgrades = opts.upgrades ?? [];
-    this.notices = opts.notices ?? [];
     this.board = opts.board;
-    this.roam = opts.roam;
     this.bench = opts.bench;
-    register(Location.registry, "location", id, this);
+    this.deed = opts.deed;
+    this.actions = opts.actions ?? [];
+    this.notices = opts.notices ?? [];
+    this.roam = opts.roam;
+    this.plan = opts.plan;
+    Location.registry.add(this);
   }
 }
 
-export class Npc {
-  static registry = new Map<string, Npc>();
-  static get(id: string): Npc {
-    const n = Npc.registry.get(id);
-    if (!n) throw new Error(`unknown npc: ${id}`);
-    return n;
-  }
+interface NpcOpts {
+  offers?: string[]; // quests they hand out
+  lends?: Loadout[]; // gear they'll lend an unarmed stranger, once
+  hours?: Hours; // when they're at their post; undefined = always
+  home?: { location: string; when?: string }; // where they are when no shift holds; `when` = only once that flag is set
+  week?: Shift[]; // a roaming npc's week, first match wins; outranks the post
+  actions?: Placed[]; // pointers they put in the world
+}
+
+export class Npc extends Entity {
+  static registry = new Registry<Npc>("npc");
   id: string;
   name: string;
-  line: string;
-  offers?: string[];
-  sells?: string[];
+  line: string; // what they say when talked to
+  offers: string[];
   lends?: Loadout[];
-  actions: Placed[];
-  home?: { location: string; when: string };
   hours?: Hours;
+  home?: { location: string; when?: string };
+  week: Shift[];
+  actions: Placed[];
   constructor(id: string, name: string, line: string, opts: NpcOpts = {}) {
+    super();
     this.id = id;
     this.name = name;
     this.line = line;
-    this.offers = opts.offers;
-    this.sells = opts.sells;
+    this.offers = opts.offers ?? [];
     this.lends = opts.lends;
-    this.home = opts.home;
     this.hours = opts.hours;
+    this.home = opts.home;
+    this.week = opts.week ?? [];
     this.actions = opts.actions ?? [];
-    Npc.registry.set(id, this);
+    Npc.registry.add(this);
   }
 }

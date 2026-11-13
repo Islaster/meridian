@@ -1,12 +1,8 @@
-import { register } from "./registry";
+import { Registry, Entity } from "@/lib/registry";
+import { Plans, type Plan } from "./plan";
 
-export class City {
-  static registry = new Map<string, City>();
-  static get(id: string): City {
-    const c = City.registry.get(id);
-    if (!c) throw new Error(`unknown city: ${id}`);
-    return c;
-  }
+export class City extends Entity {
+  static registry = new Registry<City>("city");
   id: string;
   name: string;
   region: string;
@@ -19,14 +15,17 @@ export class City {
     region: string,
     owner: string,
     size: City["size"],
-    centrality: City["centrality"]
+    centrality: City["centrality"],
+    opts: { plan?: Plan } = {} // plan: the town drawn — its streets as boxes, or its districts once it's big enough (size 3+) to have them
   ) {
+    super();
     this.id = id;
     this.name = name;
     this.region = region;
     this.owner = owner;
     this.size = size;
     this.centrality = centrality;
-    register(City.registry, "city", id, this);
+    if (opts.plan) Plans.add(this, opts.plan);
+    City.registry.add(this);
   }
 }

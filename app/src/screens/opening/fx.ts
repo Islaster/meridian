@@ -3,7 +3,7 @@
 import type { FxDef, FxName } from "./types";
 import * as particles from "./particles";
 import * as light from "./light";
-import * as cycle from "./pixelCycle";
+import * as cycle from "./pixelcycle";
 import * as weather from "./weather";
 
 export const FX: Record<FxName, FxDef> = {

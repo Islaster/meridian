@@ -8,7 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "check": "tsc --noEmit -p tsconfig.app.json && tsx scripts/check.ts"
+    "check": "tsx --tsconfig scripts/tsconfig.json scripts/check.ts"
   },
   "dependencies": {
     "react": "^19.2.8",

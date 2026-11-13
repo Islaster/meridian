@@ -1,4 +1,4 @@
-import { Quest } from "../../../../../models/quest";
+import { Quest } from "@/models/quest";
 
 // ── Postings · the Guild's board ───────────────────────────────────────────
 new Quest(
@@ -27,4 +27,3 @@ new Quest(
     acceptable: { rank: 1 },
   }
 );
-if (import.meta.hot) import.meta.hot.accept();

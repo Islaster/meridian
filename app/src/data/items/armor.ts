@@ -1,7 +1,7 @@
-import { Armor } from "../../models/item";
+import { Armor } from "@/models/item";
 
 // starting · tier 0
-export const travelerClothes = new Armor(
+new Armor(
   "traveler-clothes",
   "Traveler's clothes",
   "clothes",
@@ -10,8 +10,8 @@ export const travelerClothes = new Armor(
   { id: "cloth", qty: 2 },
   { id: "kelp-fiber", qty: 1 },
 ]);
-export const wornBoots = new Armor("worn-boots", "Worn boots", "boots", 1); // found: worn isn't made
-export const travelerCloak = new Armor(
+new Armor("worn-boots", "Worn boots", "boots", 1); // found: worn isn't made
+new Armor(
   "traveler-cloak",
   "Traveler's cloak",
   "cloak",
@@ -23,13 +23,13 @@ export const travelerCloak = new Armor(
 ]);
 
 // town gear
-export const leatherCap = new Armor("leather-cap", "Leather cap", "helmet", 2, {
+new Armor("leather-cap", "Leather cap", "helmet", 2, {
   price: 30,
 }).made("tailor", [
   { id: "leather", qty: 1 },
   { id: "kelp-fiber", qty: 1 },
 ]);
-export const leatherJerkin = new Armor(
+new Armor(
   "leather-jerkin",
   "Leather jerkin",
   "jerkin",
@@ -39,7 +39,7 @@ export const leatherJerkin = new Armor(
   { id: "leather", qty: 2 },
   { id: "kelp-fiber", qty: 1 },
 ]);
-export const quiltedRobe = new Armor(
+new Armor(
   "quilted-robe",
   "Quilted robe",
   "robe",
@@ -49,14 +49,14 @@ export const quiltedRobe = new Armor(
   { id: "cloth", qty: 3 },
   { id: "kelp-fiber", qty: 1 },
 ]);
-export const ratHideGloves = new Armor(
+new Armor(
   "rat-hide-gloves",
   "Rat-hide gloves",
   "gloves",
   1,
   { price: 25 }
 ); // cellar find: no rat hide exists to make it from
-export const crabShellShield = new Armor(
+new Armor(
   "crab-shell-shield",
   "Crab-shell shield",
   "shield",
@@ -67,7 +67,7 @@ export const crabShellShield = new Armor(
   { id: "ash", qty: 1 },
   { id: "kelp-fiber", qty: 1 },
 ]);
-export const wolfPeltCloak = new Armor(
+new Armor(
   "wolf-pelt-cloak",
   "Wolf-pelt cloak",
   "cloak",
@@ -79,14 +79,14 @@ export const wolfPeltCloak = new Armor(
 ]);
 
 // shop · tier 1 set ≈ 400 with a weapon
-export const feltCap = new Armor("felt-cap", "Felt cap", "helmet", 2, {
+new Armor("felt-cap", "Felt cap", "helmet", 2, {
   reqLevel: 3,
   price: 40,
 }).made("tailor", [
   { id: "cloth", qty: 2 },
   { id: "kelp-fiber", qty: 1 },
 ]);
-export const bearHideCoat = new Armor(
+new Armor(
   "bear-hide-coat",
   "Bear-hide coat",
   "jerkin",
@@ -96,7 +96,7 @@ export const bearHideCoat = new Armor(
   { id: "bear-hide", qty: 2 },
   { id: "kelp-fiber", qty: 1 },
 ]);
-export const furLinedBoots = new Armor(
+new Armor(
   "fur-lined-boots",
   "Fur-lined boots",
   "boots",
@@ -107,7 +107,7 @@ export const furLinedBoots = new Armor(
   { id: "wolf-pelt", qty: 1 },
   { id: "kelp-fiber", qty: 1 },
 ]);
-export const ironBuckler = new Armor(
+new Armor(
   "iron-buckler",
   "Iron buckler",
   "shield",
@@ -118,7 +118,7 @@ export const ironBuckler = new Armor(
   { id: "ash", qty: 1 },
   { id: "charcoal", qty: 1 },
 ]);
-export const rimeRing = new Armor("rime-ring", "Rime ring", "ring", 1, {
+new Armor("rime-ring", "Rime ring", "ring", 1, {
   reqLevel: 3,
   price: 60,
 }).made("smith", [
@@ -128,7 +128,7 @@ export const rimeRing = new Armor("rime-ring", "Rime ring", "ring", 1, {
 ]);
 
 // drop
-export const frostElfHood = new Armor(
+new Armor(
   "frost-elf-hood",
   "Frost elf hood",
   "headband",

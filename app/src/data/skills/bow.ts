@@ -1,4 +1,4 @@
-import { Skill } from "../../models/skill";
+import { Skill } from "@/models/skill";
 
 // ── Scout · foundational ───────────────────────────────────────────────────
 new Skill("snap-shot", "Snap shot", "bow", {
@@ -33,5 +33,3 @@ new Skill("pin-shot", "Pin shot", "bow", {
   family: "weight",
   describe: "One arrow, where it has to go.",
 });
-
-if (import.meta.hot) import.meta.hot.accept();

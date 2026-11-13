@@ -1,6 +1,6 @@
-import { Throwable } from "../../models/item";
+import { Throwable } from "@/models/item";
 
-export const oilFlask = new Throwable(
+new Throwable(
   "oil-flask",
   "Oil flask",
   "oil",
@@ -10,7 +10,7 @@ export const oilFlask = new Throwable(
   { id: "pine-resin", qty: 2 },
   { id: "kelp-fiber", qty: 1 },
 ]); // resin oil, a wick
-export const bomb = new Throwable("bomb", "Bomb", "bomb", 18, 20).made(
+new Throwable("bomb", "Bomb", "bomb", 18, 20).made(
   "alchemy",
   [
     { id: "charcoal", qty: 2 },

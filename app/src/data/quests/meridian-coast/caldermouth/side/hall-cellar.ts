@@ -1,4 +1,4 @@
-import { Quest } from "../../../../../models/quest";
+import { Quest } from "@/models/quest";
 
 new Quest(
   "something-in-the-cellar",
@@ -13,5 +13,3 @@ new Quest(
       "Wenna doesn't ask how many. She sets a coin and a stoppered bottle on the bar and goes back to the lamp.",
   }
 );
-
-if (import.meta.hot) import.meta.hot.accept();

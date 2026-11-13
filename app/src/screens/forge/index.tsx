@@ -1,30 +1,61 @@
 import { useState } from "react";
-import { useGame } from "../../state/context";
-import { SERIF, MenuButton } from "../../ui/cards";
-import { ptr, dim, label, para } from "../../ui/styles";
-import Gauge from "../../ui/gauge";
+import { useGame } from "@/state/game";
+import MenuButton from "@/ui/menubutton";
+import { greyed, ptr, dim, label, para, sheet } from "@/ui/styles";
+import Gauge from "@/ui/gauge";
 import {
   recipes,
   missing,
   gradeWindow,
   craft,
   type Make,
-} from "../../systems/craft";
-import { type Craft } from "../../data/items";
+} from "@/systems/craft";
+import type { Craft } from "@/data/items";
 
+// Four gauges, in order; the hands decide where in the grade window the piece comes out.
 type Stage = "choose" | "heat" | "draw" | "quench" | "finish" | "read";
-
-const LINES = {
-  heat: ["Too cold — it won't move.", "Cherry red. Now."],
-  draw: ["It rings wrong.", "The iron moves."],
-  quench: ["It cracks along the edge.", "A hiss, and it holds."],
-  finish: ["The edge wanders.", "The edge comes up true."],
-};
-
-const VERBS: Record<
-  string,
-  { heat: string; draw: string; quench: string; finish: string }
-> = {
+const STAGES: {
+  id: Exclude<Stage, "choose" | "read">;
+  text: string;
+  rounds: number;
+  band: number;
+  speed: number;
+  lines: [string, string];
+}[] = [
+  {
+    id: "heat",
+    text: "The bar goes into the coals. Watch the colour; pull it when it's right.",
+    rounds: 1,
+    band: 6,
+    speed: 0.6,
+    lines: ["Too cold — it won't move.", "Cherry red. Now."],
+  },
+  {
+    id: "draw",
+    text: "Draw it out. Three strokes, each one where the iron wants it.",
+    rounds: 3,
+    band: 4,
+    speed: 0.8,
+    lines: ["It rings wrong.", "The iron moves."],
+  },
+  {
+    id: "quench",
+    text: "The glow is going. One chance to set it.",
+    rounds: 1,
+    band: 3,
+    speed: 1,
+    lines: ["It cracks along the edge.", "A hiss, and it holds."],
+  },
+  {
+    id: "finish",
+    text: "To the stone. Two passes, even pressure, and don't chase it.",
+    rounds: 2,
+    band: 5,
+    speed: 0.7,
+    lines: ["The edge wanders.", "The edge comes up true."],
+  },
+];
+const VERBS: Record<string, Record<string, string>> = {
   smith: {
     heat: "Pull the bar",
     draw: "Strike",
@@ -33,8 +64,6 @@ const VERBS: Record<
   },
   alchemy: { heat: "Steep", draw: "Stir", quench: "Strain", finish: "Bottle" },
 };
-
-// recipes(state, which) in the choose stage; verb={v.heat} … verb={v.finish} on the four gauges
 
 export default function Forge({
   craft: which,
@@ -45,185 +74,99 @@ export default function Forge({
   title: string;
   onClose: () => void;
 }) {
-  const { state, changeState } = useGame();
+  const { state, update } = useGame();
   const [recipe, setRecipe] = useState<Make | null>(null);
   const [stage, setStage] = useState<Stage>("choose");
   const [hits, setHits] = useState(0);
   const [cracked, setCracked] = useState(false);
   const [said, setSaid] = useState<string[]>([]);
   const seed = state.time.dayId * 7 + (state.counters.forged ?? 0);
-  const v = VERBS[which] ?? VERBS.smith;
+  const verbs = VERBS[which] ?? VERBS.smith;
+  const current = STAGES.find((s) => s.id === stage);
 
-  const say = (t: string) => setSaid((l) => [...l, t]);
-  const apply = (n: typeof state) =>
-    (Object.keys(n) as (keyof typeof state)[]).forEach((k) =>
-      changeState(k, n[k])
-    );
-
-  const finish = () => {
+  const next = (h: number) => {
+    const i = STAGES.findIndex((s) => s.id === stage);
+    const s = STAGES[i];
+    const total = hits + h;
+    setHits(total);
+    setSaid((l) => [...l, s.lines[h > 0 ? 1 : 0]]);
+    if (s.id === "quench") setCracked(h === 0);
+    if (i + 1 < STAGES.length) return setStage(STAGES[i + 1].id);
     setStage("read");
-    apply(craft(state, recipe!, hits, !cracked));
+    update(craft(state, recipe!, total, !cracked));
+  };
+  const again = () => {
+    setStage("choose");
+    setRecipe(null);
+    setHits(0);
+    setSaid([]);
   };
 
   return (
-    <div
-      style={{
-        position: "fixed",
-        inset: 0,
-        background: "rgba(0,0,0,0.96)",
-        color: "rgba(233,236,242,0.92)",
-        font: `400 clamp(14px, 1.4vw, 18px) ${SERIF}`,
-        padding: "48px 24px",
-        overflowY: "auto",
-      }}
-    >
-      <div
-        style={{
-          maxWidth: 640,
-          margin: "0 auto",
-          display: "flex",
-          flexDirection: "column",
-          gap: 16,
-        }}
-      >
-        <div style={label}>
-          {title}
-          {recipe && ` · ${recipe.name}`}
-        </div>
-
-        {stage === "choose" &&
-          recipes(state, which).map((r) => {
-            const lack = missing(state, r),
-              w = gradeWindow(state, r);
-            return (
-              <button
-                key={r.id}
-                style={{ ...ptr, opacity: lack.length ? 0.4 : 1 }}
-                disabled={!!lack.length}
-                onClick={() => {
-                  setRecipe(r);
-                  setStage("heat");
-                }}
-              >
-                {r.name}
-                <span style={dim}>
-                  {" "}
-                  · {r.needs} ·{" "}
-                  {w.floor === w.ceiling
-                    ? w.floor
-                    : `${w.floor} to ${w.ceiling}`}
-                </span>
-                {lack.length > 0 && (
-                  <span style={dim}> · short {lack.join(", ")}</span>
-                )}
-              </button>
-            );
-          })}
-
-        {stage === "heat" && (
-          <>
-            <p style={para}>
-              The bar goes into the coals. Watch the colour; pull it when it's
-              right.
-            </p>
-            <Gauge
-              verb={v.heat}
-              rounds={1}
-              band={6}
-              speed={0.6}
-              seed={seed}
-              onDone={(h) => {
-                setHits(h);
-                say(LINES.heat[h]);
-                setStage("draw");
-              }}
-            />
-          </>
-        )}
-        {stage === "draw" && (
-          <>
-            <p style={para}>
-              Draw it out. Three strokes, each one where the iron wants it.
-            </p>
-            <Gauge
-              verb={v.draw}
-              rounds={3}
-              band={4}
-              speed={0.8}
-              seed={seed + 1}
-              onDone={(h) => {
-                setHits((x) => x + h);
-                say(LINES.draw[h > 1 ? 1 : 0]);
-                setStage("quench");
-              }}
-            />
-          </>
-        )}
-        {stage === "quench" && (
-          <>
-            <p style={para}>The glow is going. One chance to set it.</p>
-            <Gauge
-              verb={v.quench}
-              rounds={1}
-              band={3}
-              speed={1}
-              seed={seed + 2}
-              onDone={(h) => {
-                say(LINES.quench[h]);
-                setCracked(h === 0);
-                setStage("finish");
-              }}
-            />
-          </>
-        )}
-        {stage === "finish" && (
-          <>
-            <p style={para}>
-              To the stone. Two passes, even pressure, and don't chase it.
-            </p>
-            <Gauge
-              verb={v.finish}
-              rounds={2}
-              band={5}
-              speed={0.7}
-              seed={seed + 3}
-              onDone={(h) => {
-                say(LINES.finish[h > 0 ? 1 : 0]);
-                setHits((x) => x + h);
-                finish();
-              }}
-            />
-          </>
-        )}
-        {stage === "read" && (
-          <>
-            {said.map((t, i) => (
-              <div key={i} style={dim}>
-                {t}
-              </div>
-            ))}
-            <p style={para}>
-              {cracked
-                ? "Tobin runs a thumb down the crack and says nothing, which is worse."
-                : "Tobin turns it over twice and grunts. It'll hold."}
-            </p>
+    <div style={sheet}>
+      <div style={label}>
+        {title}
+        {recipe && ` · ${recipe.name}`}
+      </div>
+      {stage === "choose" &&
+        recipes(state, which).map((r) => {
+          const lack = missing(state, r),
+            w = gradeWindow(state, r);
+          return (
             <button
-              style={ptr}
+              key={r.id}
+              style={greyed(lack.length > 0)}
+              disabled={lack.length > 0}
               onClick={() => {
-                setStage("choose");
-                setRecipe(null);
-                setHits(0);
-                setSaid([]);
+                setRecipe(r);
+                setStage("heat");
               }}
             >
-              Another
+              {r.name}
+              <span style={dim}>
+                {" "}
+                · {r.needs} ·{" "}
+                {w.floor === w.ceiling ? w.floor : `${w.floor} to ${w.ceiling}`}
+              </span>
+              {lack.length > 0 && (
+                <span style={dim}> · short {lack.join(", ")}</span>
+              )}
             </button>
-          </>
-        )}
-
-        <div style={{ marginTop: 16, alignSelf: "center" }}>
-          <MenuButton label="Close" onClick={onClose} />
-        </div>
+          );
+        })}
+      {current && (
+        <>
+          <p style={para}>{current.text}</p>
+          <Gauge
+            key={current.id}
+            verb={verbs[current.id]}
+            rounds={current.rounds}
+            band={current.band}
+            speed={current.speed}
+            seed={seed + STAGES.indexOf(current)}
+            onDone={next}
+          />
+        </>
+      )}
+      {stage === "read" && (
+        <>
+          {said.map((t, i) => (
+            <div key={i} style={dim}>
+              {t}
+            </div>
+          ))}
+          <p style={para}>
+            {cracked
+              ? "A thumb down the crack, and nothing said, which is worse."
+              : "Turned over twice, and a grunt. It'll hold."}
+          </p>
+          <button style={ptr} onClick={again}>
+            Another
+          </button>
+        </>
+      )}
+      <div style={{ marginTop: 16, alignSelf: "center" }}>
+        <MenuButton label="Close" onClick={onClose} />
       </div>
     </div>
   );

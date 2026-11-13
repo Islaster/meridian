@@ -1,9 +1,7 @@
 // Intertitle card and title — DOM typography over the canvas, so text stays crisp.
 import { forwardRef } from "react";
-import { PALETTE, TITLE } from "../screens/opening/config";
-
-export const SERIF =
-  '"Palatino Linotype", "Book Antiqua", Palatino, "Cormorant Garamond", Georgia, serif';
+import { PALETTE, TITLE } from "./config";
+import { SERIF } from "@/ui/theme";
 
 export const IntertitleCard = forwardRef<HTMLDivElement, object>(
   function IntertitleCard(_props, ref) {
@@ -64,30 +62,3 @@ export const TitleOverlay = forwardRef<HTMLDivElement, object>(
     );
   }
 );
-
-export function MenuButton({
-  label,
-  onClick,
-}: {
-  label: string;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      style={{
-        font: `400 clamp(15px, 1.6vw, 20px) ${SERIF}`,
-        letterSpacing: "0.18em",
-        textTransform: "uppercase",
-        color: "rgba(233,236,242,0.78)",
-        background: "transparent",
-        border: "1px solid rgba(233,236,242,0.25)",
-        padding: "10px 34px",
-        cursor: "pointer",
-        minWidth: "clamp(220px, 24vw, 320px)",
-      }}
-    >
-      {label}
-    </button>
-  );
-}

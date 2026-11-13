@@ -1,4 +1,4 @@
-import { Quest } from "../../../../../models/quest";
+import { Quest } from "@/models/quest";
 
 new Quest(
   "walk-the-breakwater",
@@ -13,5 +13,3 @@ new Quest(
     next: "tell-dunny",
   }
 );
-
-if (import.meta.hot) import.meta.hot.accept();

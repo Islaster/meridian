@@ -1,8 +1,8 @@
-import { LIEN } from "../data/money/lien";
-import type { GameState } from "../state/types";
+import { LIEN } from "@/data/money/lien";
+import type { GameState } from "@/state/types";
 
-export const remaining = (s: GameState) => LIEN.due - s.time.dayId;
-export const standingFor = (dayId: number) =>
+const remaining = (s: GameState) => LIEN.due - s.time.dayId;
+const standingFor = (dayId: number) =>
   LIEN.tiers.find(([by]) => dayId <= by)?.[1] ?? 0;
 
 // The Guild's board. Telegraphs the loss and what paying early is worth.

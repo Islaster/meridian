@@ -1,47 +1,29 @@
-import { useGame } from "../../state/context";
-import { Weapon, Armor, Item } from "../../data/items";
-import { equip, unequip, itemByName } from "../../systems/inventory";
-import { weaponDamage, strBonus } from "../../systems/combat";
-import { explain } from "../../systems/perks";
-import { label, para, ptr, rail } from "../../ui/styles";
-import type { GameState } from "../../state/types";
-import { GRADE_NAME, graded } from "../../ui/grade";
-
-type Slot = keyof NonNullable<GameState["player"]["equipment"]>;
-
-// the slot a piece goes in, as the equipment record names it
-const slotKey = (it: Item): Slot | undefined =>
-  it.slot === "weapon"
-    ? "mainWeapon"
-    : it.slot === "offhand"
-    ? "altWeapon"
-    : it.slot === "ring"
-    ? "ringOne"
-    : (it.slot as Slot | undefined);
+import { useGame } from "@/state/game";
+import { Weapon, Armor, Item, isGear } from "@/data/items";
+import { equip, unequip, wornIn, wornFor, wearable } from "@/systems/inventory";
+import { weaponDamage, strBonus } from "@/systems/combat";
+import { explain } from "@/systems/perks";
+import { label, para, ptr, rail } from "@/ui/styles";
+import { GRADE_NAME, graded } from "@/ui/grade";
 
 const block = { display: "flex", flexDirection: "column" as const, gap: 4 };
 
-// the card: looks, then the numbers with yours in them, then every perk spelled out, then what it asks
+// The card: looks, then the numbers with yours in them, then every perk spelled out, then what it asks.
 export default function GearDetail({
-  name,
+  id,
   onClose,
 }: {
-  name: string;
+  id: string;
   onClose: () => void;
 }) {
-  const { state, changeState } = useGame();
+  const { state, update } = useGame();
   const p = state.player;
-  const def = itemByName(name);
-  if (!(def instanceof Weapon || def instanceof Armor)) return null;
-  const w = def instanceof Weapon ? def : null;
+  const def = Item.get(id);
+  if (!isGear(def)) return null;
 
-  const wornIn = (Object.entries(p.equipment ?? {}) as [Slot, string][]).find(
-    ([, n]) => n === name
-  )?.[0];
-  const key = slotKey(def);
-  const wornName = key ? p.equipment?.[key] : undefined;
-  const worn = wornName && wornName !== name ? itemByName(wornName) : undefined;
-
+  const worn = wornIn(p.equipment, id);
+  const otherId = wornFor(p.equipment, def);
+  const other = otherId && otherId !== id ? Item.get(otherId) : undefined;
   const power = (it: Item | undefined) =>
     it instanceof Weapon
       ? weaponDamage(it, p.stats)
@@ -49,12 +31,7 @@ export default function GearDetail({
       ? it.defense
       : 0;
   const now = power(def);
-  const delta = worn ? now - power(worn) : null;
-  const unmet = Object.entries(def.reqStats).filter(
-    ([k, n]) => (p.stats[k] ?? 0) < n
-  );
-  const under = p.level < def.reqLevel;
-
+  const delta = other ? now - power(other) : null;
   const made = def.recipe
     ? `${def.recipe.craft}: ${def.recipe.materials
         .map((m) => `${m.qty} ${Item.get(m.id).name.toLowerCase()}`)
@@ -64,31 +41,22 @@ export default function GearDetail({
   return (
     <div style={{ ...rail, gap: 14, minWidth: 260 }}>
       <div style={block}>
-        <div
+        <button
           style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            gap: 16,
+            ...ptr,
+            alignSelf: "flex-start",
+            padding: "2px 10px",
+            fontSize: "0.8em",
+            letterSpacing: "0.1em",
           }}
+          onClick={onClose}
+          title="esc"
         >
-          <button
-            style={{
-              ...ptr,
-              padding: "2px 10px",
-              fontSize: "0.8em",
-              letterSpacing: "0.1em",
-              whiteSpace: "nowrap",
-            }}
-            onClick={onClose}
-            title="esc"
-          >
-            × close card
-          </button>
-        </div>
+          × close card
+        </button>
         <div style={label}>
           <span style={graded(def.grade)}>{GRADE_NAME[def.grade]}</span> ·{" "}
-          {def.kind} · {def.tags[1]}
+          {def.kind} · {def.group}
         </div>
         <div style={{ fontSize: "1.15em", ...graded(def.grade) }}>
           {def.name}
@@ -100,11 +68,11 @@ export default function GearDetail({
 
       <div style={block}>
         <div style={label}>Stats</div>
-        {w ? (
+        {def instanceof Weapon ? (
           <>
             <div>
-              Damage {w.damage}
-              {now !== w.damage && (
+              Damage {def.damage}
+              {now !== def.damage && (
                 <span style={{ opacity: 0.7 }}> · {now} with its perks</span>
               )}
             </div>
@@ -114,7 +82,7 @@ export default function GearDetail({
             </div>
           </>
         ) : (
-          <div>Defense {(def as Armor).defense}</div>
+          <div>Defense {def.defense}</div>
         )}
       </div>
 
@@ -133,17 +101,17 @@ export default function GearDetail({
         <div style={block}>
           <div style={label}>Asks</div>
           <div style={{ opacity: 0.7 }}>
-            {def.reqLevel > 1 && `level ${def.reqLevel}`}
-            {Object.entries(def.reqStats).map(([k, n], i) => (
-              <span
-                key={k}
-                style={{ opacity: (p.stats[k] ?? 0) < n ? 1 : 0.7 }}
-              >
-                {(i > 0 || def.reqLevel > 1) && " · "}
-                {k.toUpperCase()} {n}
-                {(p.stats[k] ?? 0) < n && ` (you: ${p.stats[k] ?? 0})`}
-              </span>
-            ))}
+            {[
+              def.reqLevel > 1 && `level ${def.reqLevel}`,
+              ...Object.entries(def.reqStats).map(
+                ([k, n]) =>
+                  `${k.toUpperCase()} ${n}${
+                    (p.stats[k] ?? 0) < n ? ` (you: ${p.stats[k] ?? 0})` : ""
+                  }`
+              ),
+            ]
+              .filter(Boolean)
+              .join(" · ")}
           </div>
         </div>
       )}
@@ -151,20 +119,18 @@ export default function GearDetail({
       <div style={{ opacity: 0.7 }}>
         Worth {def.price} gold · {made}
       </div>
-
-      {worn && (
+      {other && (
         <div style={{ opacity: 0.7 }}>
-          In that slot now: {worn.name} · {power(worn)}
+          In that slot now: {other.name} · {power(other)}
           {delta !== null && delta !== 0 && (
             <span> → {delta > 0 ? `+${delta}` : delta} if you switch</span>
           )}
         </div>
       )}
-
-      {wornIn ? (
+      {worn ? (
         <button
           style={{ ...ptr, alignSelf: "flex-start" }}
-          onClick={() => changeState("player", unequip(p, wornIn))}
+          onClick={() => update({ ...state, player: unequip(p, worn) })}
         >
           Unequip
         </button>
@@ -173,10 +139,10 @@ export default function GearDetail({
           style={{
             ...ptr,
             alignSelf: "flex-start",
-            opacity: unmet.length || under ? 0.4 : 1,
+            opacity: wearable(p, id) ? 1 : 0.4,
           }}
-          disabled={unmet.length > 0 || under}
-          onClick={() => changeState("player", equip(p, def.id))}
+          disabled={!wearable(p, id)}
+          onClick={() => update({ ...state, player: equip(p, id) })}
         >
           Equip
         </button>

@@ -7,11 +7,9 @@ interface Props {
   onDone?: () => void;
 }
 
+// Lines typed one after another. A new passage is a new component: key it on what it shows.
 export default function Passage({ lines, complete = false, onDone }: Props) {
   const [n, setN] = useState(0); // lines fully typed so far
-  useEffect(() => {
-    setN(0);
-  }, [lines]);
   useEffect(() => {
     if (complete || n >= lines.length) onDone?.();
   }, [n, lines, complete, onDone]);
@@ -27,17 +25,15 @@ export default function Passage({ lines, complete = false, onDone }: Props) {
         textAlign: "left",
       }}
     >
-      {lines.slice(0, shown).map((line, i) => {
-        return (
-          <p key={i} style={{ margin: 0, lineHeight: 1.6 }}>
-            {complete || i < n ? (
-              line
-            ) : (
-              <Typewriter text={line} onDone={() => setN(n + 1)} />
-            )}
-          </p>
-        );
-      })}
+      {lines.slice(0, shown).map((line, i) => (
+        <p key={i} style={{ margin: 0, lineHeight: 1.6 }}>
+          {complete || i < n ? (
+            line
+          ) : (
+            <Typewriter text={line} onDone={() => setN(n + 1)} />
+          )}
+        </p>
+      ))}
     </div>
   );
 }

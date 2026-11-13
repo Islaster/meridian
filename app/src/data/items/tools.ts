@@ -1,6 +1,6 @@
-import { Tool } from "../../models/item";
+import { Tool } from "@/models/item";
 
-export const campPack = new Tool(
+new Tool(
   "camp-pack",
   "Camp pack",
   40,

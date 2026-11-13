@@ -1,2 +1,2 @@
 import "./caldermouth";
-export * from "../../../models/location";
+export * from "@/models/location";

@@ -1,6 +1,6 @@
-import type { GameState } from "../state/types";
-import type { Note } from "./types";
-import { sleep, WEARY } from "./time";
+import type { GameState } from "@/state/types";
+import type { Note } from "./narrate";
+import { sleep, WEARY, DAY_START } from "./time";
 import { refresh } from "./combat";
 
 export type Bed = "bed" | "camp" | "rough";
@@ -53,10 +53,14 @@ export const night = (
       }, and it shows. ${stat.toUpperCase()} is down ${amount} until you sleep properly.`,
     });
   }
+  // days slept straight through: a sleep taken at the wake hour, the day untouched, counts on; anything else starts over at one
+  const straight =
+    s.time.hour === DAY_START ? (s.counters["sleep:straight"] ?? 0) + 1 : 1;
   return {
     state: {
       ...s,
       player,
+      counters: { ...s.counters, "sleep:straight": straight },
       time: sleep(s.time),
       done: refresh(s.done, s.time.dayId + 1),
     },

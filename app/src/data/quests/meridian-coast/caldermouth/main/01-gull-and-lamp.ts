@@ -1,5 +1,5 @@
-import { Quest } from "../../../../../models/quest";
-import { returnLoan } from "../../../../../systems/inventory";
+import { Quest } from "@/models/quest";
+import { returnLoan } from "@/systems/inventory";
 
 new Quest(
   "talk-wenna",
@@ -53,5 +53,3 @@ new Quest(
     next: ["fenns-lien", "a-masters-word"],
   }
 );
-
-if (import.meta.hot) import.meta.hot.accept();

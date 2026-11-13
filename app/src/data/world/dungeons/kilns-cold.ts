@@ -1,4 +1,4 @@
-import { Dungeon } from "../../../models/dungeon";
+import { Dungeon } from "@/models/dungeon";
 
 new Dungeon(
   "kilns-cold",
@@ -124,7 +124,21 @@ new Dungeon(
     dormancy: 3,
     tempo: 0.5,
     pace: 1,
+    // the threshold at the bottom, the treeline fanning out, the lake and the pack beyond it
+    plan: {
+      size: [10, 7],
+      door: [0, 0.4, 2, 1.2],
+      boxes: {
+        threshold: [0, 5.3, 2, 1.7],
+        treeline: [2.4, 4.2, 2.4, 2.8],
+        "frozen-door": [0, 2.6, 2, 1.6],
+        deadfall: [2.6, 1.2, 2, 1.8],
+        lake: [5.2, 2.8, 2.2, 2.4],
+        hollow: [5.4, 0, 1.8, 1.8],
+        pack: [7.8, 3.6, 2.2, 1.8],
+        clearing: [7.8, 0.8, 2.2, 2],
+        cairn: [7.8, 6, 2.2, 1],
+      },
+    },
   }
 );
-
-if (import.meta.hot) import.meta.hot.accept();

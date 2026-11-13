@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import { SERIF } from "./cards";
+import { SERIF } from "./theme";
 
 const base: CSSProperties = {
   position: "absolute",

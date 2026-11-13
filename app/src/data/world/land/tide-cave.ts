@@ -1,4 +1,4 @@
-import { Dungeon } from "../../../models/dungeon";
+import { Dungeon } from "@/models/dungeon";
 
 new Dungeon(
   "tide-cave",
@@ -75,5 +75,19 @@ new Dungeon(
         text: "Shards along the shore that never melt, even in your hand.",
       },
     },
-  ]
+  ],
+  {
+    // in from the mouth, the narrows forking up to the dry chamber and down to the pool
+    plan: {
+      size: [8, 5],
+      door: [0, 1.6, 1.4, 1.2],
+      boxes: {
+        mouth: [0, 3.2, 2, 1.8],
+        first: [2.4, 2.4, 2, 1.8],
+        narrows: [4.8, 1.4, 1.4, 2.8],
+        third: [6.5, 0, 1.5, 1.8],
+        pool: [6.5, 3, 1.5, 2],
+      },
+    },
+  }
 );

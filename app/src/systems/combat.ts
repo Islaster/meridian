@@ -1,32 +1,25 @@
-import { Weapon, Armor, Item } from "../data/items";
-import { Monster } from "../data/monsters";
-import type { GameState } from "../state/types";
-import { itemByName } from "./inventory";
+import { Weapon, Armor, Item } from "@/data/items";
+import { Monster } from "@/data/monsters";
+import type { Player } from "@/state/types";
 import { bonus } from "./perks";
-
-type Player = GameState["player"];
 
 export const strBonus = (stats: Record<string, number>) =>
   Math.floor((stats.str ?? 5) / 3); // what the arm adds, whatever the blade
 
-export function weaponDamage(w: Weapon, stats: Record<string, number>): number {
-  return w.perks.reduce((d, p) => d + bonus(p, stats), w.damage);
-}
+export const weaponDamage = (w: Weapon, stats: Record<string, number>) =>
+  w.perks.reduce((d, p) => d + bonus(p, stats), w.damage);
 
 export function playerAttack(p: Player): number {
-  const w = p.equipment?.mainWeapon
-    ? itemByName(p.equipment.mainWeapon)
-    : undefined;
+  const w = p.equipment.weapon ? Item.get(p.equipment.weapon) : undefined;
   const base = w instanceof Weapon ? weaponDamage(w, p.stats) : 1;
   return base + strBonus(p.stats);
 }
 
-export function playerDefense(p: Player): number {
-  return Object.values(p.equipment ?? {}).reduce((d, name) => {
-    const it = name ? itemByName(name) : undefined;
+export const playerDefense = (p: Player) =>
+  Object.values(p.equipment).reduce((d, id) => {
+    const it = id ? Item.get(id) : undefined;
     return d + (it instanceof Armor ? it.defense : 0);
   }, 0);
-}
 
 export const hit = (attack: number, defense: number) =>
   Math.max(1, attack - defense);
@@ -50,24 +43,24 @@ export interface Spoils {
   gold: number;
   items: string[];
 }
-
-export function spoils(monsterIds: string[], seed: string): Spoils {
+// what the fallen leave: xp always, gold and drops by the day's roll
+export function spoils(fallen: string[], seed: string, loot = true): Spoils {
   const r = rng(seed),
     out: Spoils = { xp: 0, gold: 0, items: [] };
-  for (const id of monsterIds) {
+  for (const id of fallen) {
     const m = Monster.get(id);
     out.xp += m.xp;
+    if (!loot) continue;
     out.gold += m.gold[0] + Math.floor(r() * (m.gold[1] - m.gold[0] + 1));
     for (const d of m.drops) if (r() < d.chance) out.items.push(d.item);
   }
   return out;
 }
 
+// a new day: the daily flags lift, and a dormant dungeon wakes on its day
 export const refresh = (done: string[], day: number) =>
   done.filter(
     (f) =>
-      !/^(room|chest|trap):|^act:roam-/.test(f) &&
+      !/^(room|chest|trap|gather|stat):|^act:roam-/.test(f) &&
       !(f.startsWith("dormant:") && Number(f.split(":")[2]) <= day)
   );
-
-export const itemName = (id: string) => Item.get(id).name;

@@ -1,3 +1,4 @@
 import "./battle";
 import "./support";
-export * from "../../models/class";
+import "./phantasm";
+export * from "@/models/class";

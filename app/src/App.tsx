@@ -1,29 +1,28 @@
-import Opening from "./screens/opening/opening";
 import { useState } from "react";
-import { openingPlates } from "./screens/opening/openingplates";
-import MainMenu from "./screens/main-menu";
-import Creation from "./screens/character-creation/creation";
-import Entrance from "./screens/entrance";
-import Town from "./screens/world";
-import DungeonScreen from "./screens/dungeon";
-import { useGame } from "./state/gamecontext";
+import Opening from "@/screens/opening/opening";
+import { openingPlates } from "@/screens/opening/openingplates";
+import MainMenu from "@/screens/main-menu";
+import Creation from "@/screens/character-creation/creation";
+import Entrance from "@/screens/entrance";
+import WorldScreen from "@/screens/world";
+import DungeonScreen from "@/screens/dungeon";
+import { useGame } from "@/state/game";
 
-function App() {
-  const [screen, setScreen] = useState<"" | "start" | "entrance" | "game">("");
+type Screen = "title" | "creation" | "entrance" | "game";
+
+// The screens in order; once in the game, where you stand decides which scene renders.
+export default function App() {
+  const [screen, setScreen] = useState<Screen>("title");
   const { state } = useGame();
-  return (
-    <>
-      {screen === "" && (
-        <Opening plates={openingPlates} pixelScale={4}>
-          <MainMenu onNewGame={() => setScreen("start")} />
-        </Opening>
-      )}
-      {screen === "start" && <Creation onDone={() => setScreen("entrance")} />}
-      {screen === "entrance" && <Entrance onDone={() => setScreen("game")} />}
-      {screen === "game" &&
-        (state.world.dungeon ? <DungeonScreen /> : <Town />)}
-    </>
-  );
+  if (screen === "title")
+    return (
+      <Opening plates={openingPlates} pixelScale={4}>
+        <MainMenu onNewGame={() => setScreen("creation")} />
+      </Opening>
+    );
+  if (screen === "creation")
+    return <Creation onDone={() => setScreen("entrance")} />;
+  if (screen === "entrance")
+    return <Entrance onDone={() => setScreen("game")} />;
+  return state.world.dungeon ? <DungeonScreen /> : <WorldScreen />;
 }
-
-export default App;

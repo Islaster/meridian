@@ -1,19 +1,13 @@
-import { register } from "./registry";
+import { Registry, Entity } from "@/lib/registry";
 
 export type Archetype = "near" | "far" | "swarmer" | "heavy";
 export interface Drop {
   item: string;
-  chance: number;
-} // 0..1
+  chance: number; // 0..1
+}
 
-export class Monster {
-  static registry = new Map<string, Monster>();
-  static get(id: string): Monster {
-    const m = Monster.registry.get(id);
-    if (!m) throw new Error(`unknown monster: ${id}`);
-    return m;
-  }
-
+export class Monster extends Entity {
+  static registry = new Registry<Monster>("monster");
   id: string;
   name: string;
   level: number;
@@ -27,7 +21,6 @@ export class Monster {
   drops: Drop[];
   describe: string;
   fleeable: boolean;
-
   constructor(
     id: string,
     name: string,
@@ -38,6 +31,7 @@ export class Monster {
     describe: string,
     fleeable = true
   ) {
+    super();
     this.id = id;
     this.name = name;
     this.level = level;
@@ -51,6 +45,6 @@ export class Monster {
     this.drops = loot.drops ?? [];
     this.describe = describe;
     this.fleeable = fleeable;
-    register(Monster.registry, "monster", id, this);
+    Monster.registry.add(this);
   }
 }

@@ -1,9 +1,9 @@
-import { Location, Npc } from "../../../models/location";
-import { lienNotice, settleLien } from "../../../systems/lien";
-import { LIEN } from "../../money/lien";
-import { shelf } from "../../items/forge";
-import { roaming } from "../../../systems/presence";
-import { oaths, practice } from "../../../systems/classes";
+import { Location, Npc } from "@/models/location";
+import { lienNotice, settleLien } from "@/systems/lien";
+import { LIEN } from "@/data/money/lien";
+import { shelf } from "@/data/items/forge";
+import { roaming } from "@/systems/presence";
+import { oaths, practice } from "@/systems/classes";
 
 //NPC
 new Npc(
@@ -66,31 +66,32 @@ new Npc(
   "My master went into the deep. I teach what he left me, which is less than you'd hope.",
   { offers: ["find-the-mark"] }
 );
+// The hall's masters. They live there, each with a room for the craft, and keep a week:
+// mornings in their rooms, afternoons out in the town where the craft is, evenings on the hall floor.
+// Days are 0–6 from the first day of the week. Each name they teach opens at its own level — the class says which.
 new Npc(
   "ira-vell",
   "Ira Vell",
   "Show me your hands. No — I've seen enough. Come back when you've carried something heavy.",
   {
-    offers: [
-      "meet-ira-vell",
-      "the-yard-trial",
-      "first-forms",
-      "the-weight",
-      "bring-ira-home",
+    offers: ["deliver-the-notice", "first-forms", "the-weight"],
+    home: { location: "hall" },
+    week: [
+      { at: "hall-yard", open: 6, close: 13 },
+      { at: "sword-yard", open: 13, close: 18, days: [1, 3, 5] },
+      { at: "hall-yard", open: 13, close: 18, days: [0, 2, 4, 6] },
     ],
-    home: { location: "hall", when: "resident:ira-vell" },
     actions: [
       {
-        at: "sword-yard",
+        at: "hall-yard",
         id: "practice-ira-vell",
         repeat: true,
         hours: 4,
-        label: "Practice in the yard",
-        requires: { flags: ["met:ira-vell"] },
-        effect: practice("ira-vell", 2),
+        label: "Drill in the yard",
+        effect: practice("ira-vell"),
         text: "Forms with a blunt blade, alone, while the old man watches nothing in particular.",
       },
-      ...oaths("ira-vell", "Ira").map((a) => ({ ...a, at: "sword-yard" })),
+      ...oaths("ira-vell", "Ira").map((a) => ({ ...a, at: "hall-yard" })),
     ],
   }
 );
@@ -99,25 +100,24 @@ new Npc(
   "Maud Kestrel",
   "You breathe when you draw. Everyone does, until they don't.",
   {
-    offers: [
-      "meet-maud-kestrel",
-      "trial-maud-kestrel",
-      "forms-maud-kestrel",
-      "home-maud-kestrel",
+    offers: ["forms-maud-kestrel"],
+    home: { location: "hall" },
+    week: [
+      { at: "hall-yard", open: 7, close: 12 },
+      { at: "the-butts", open: 12, close: 18, days: [0, 2, 4] },
+      { at: "hall-yard", open: 12, close: 18, days: [1, 3, 5, 6] },
     ],
-    home: { location: "hall", when: "resident:maud-kestrel" },
     actions: [
       {
-        at: "the-butts",
+        at: "hall-yard",
         id: "practice-maud-kestrel",
         repeat: true,
         hours: 4,
-        label: "Loose at the butts",
-        requires: { flags: ["met:maud-kestrel"] },
-        effect: practice("maud-kestrel", 2),
+        label: "Loose at the straw",
+        effect: practice("maud-kestrel"),
         text: "A quiver, a straw man, and a woman who doesn't look up.",
       },
-      ...oaths("maud-kestrel", "Maud").map((a) => ({ ...a, at: "the-butts" })),
+      ...oaths("maud-kestrel", "Maud").map((a) => ({ ...a, at: "hall-yard" })),
     ],
   }
 );
@@ -126,20 +126,24 @@ new Npc(
   "Tobin Ashe",
   "If it breaks, it wasn't made. Say what you want or get out of the heat.",
   {
-    offers: ["meet-tobin-ashe", "trial-tobin-ashe", "home-tobin-ashe"],
-    home: { location: "hall", when: "resident:tobin-ashe" },
+    offers: [],
+    home: { location: "hall" },
+    week: [
+      { at: "hall-smithy", open: 6, close: 12 },
+      { at: "the-forge", open: 12, close: 19, days: [1, 2, 4, 5] },
+      { at: "hall-smithy", open: 12, close: 19, days: [0, 3, 6] },
+    ],
     actions: [
       {
-        at: "the-forge",
+        at: "hall-smithy",
         id: "practice-tobin-ashe",
         repeat: true,
         hours: 4,
         label: "Work the bellows",
-        requires: { flags: ["met:tobin-ashe"] },
-        effect: practice("tobin-ashe", 2),
+        effect: practice("tobin-ashe"),
         text: "Pump, wait, pump. The bar comes to heat on Tobin's count, not yours.",
       },
-      ...oaths("tobin-ashe", "Tobin").map((a) => ({ ...a, at: "the-forge" })),
+      ...oaths("tobin-ashe", "Tobin").map((a) => ({ ...a, at: "hall-smithy" })),
     ],
   }
 );
@@ -148,22 +152,26 @@ new Npc(
   "Hesper Quill",
   "Don't touch that. Or that. Sit, if you must.",
   {
-    offers: ["meet-hesper-quill", "trial-hesper-quill", "home-hesper-quill"],
-    home: { location: "hall", when: "resident:hesper-quill" },
+    offers: [],
+    home: { location: "hall" },
+    week: [
+      { at: "hall-still", open: 9, close: 13 },
+      { at: "the-stillroom", open: 13, close: 17, days: [0, 1, 3] },
+      { at: "hall-still", open: 13, close: 17, days: [2, 4, 5, 6] },
+    ],
     actions: [
       {
-        at: "the-stillroom",
+        at: "hall-still",
         id: "practice-hesper-quill",
         repeat: true,
         hours: 4,
-        label: "Grind in the stillroom",
-        requires: { flags: ["met:hesper-quill"] },
-        effect: practice("hesper-quill", 2),
+        label: "Grind at the bench",
+        effect: practice("hesper-quill"),
         text: "Pestle and mortar until your wrist burns. She corrects the grip once and says nothing else.",
       },
       ...oaths("hesper-quill", "Hesper").map((a) => ({
         ...a,
-        at: "the-stillroom",
+        at: "hall-still",
       })),
     ],
   }
@@ -173,56 +181,50 @@ new Npc(
   "Orrin Vey",
   "Tide's turning. You can feel it if you stop talking.",
   {
-    offers: [
-      "meet-orrin-vey",
-      "trial-orrin-vey",
-      "forms-orrin-vey",
-      "home-orrin-vey",
+    offers: ["forms-orrin-vey"],
+    home: { location: "hall" },
+    week: [
+      { at: "hall-cistern", open: 10, close: 15 },
+      { at: "lantern-house", open: 15, close: 22, days: [2, 3, 6] },
+      { at: "hall-cistern", open: 15, close: 22, days: [0, 1, 4, 5] },
     ],
-    home: { location: "hall", when: "resident:orrin-vey" },
     actions: [
       {
-        at: "lantern-house",
+        at: "hall-cistern",
         id: "practice-orrin-vey",
         repeat: true,
         hours: 4,
         label: "Breathe with the swell",
-        requires: { flags: ["met:orrin-vey"] },
-        effect: practice("orrin-vey", 2),
+        effect: practice("orrin-vey"),
         text: "Out when it goes out, in when it comes in. An hour in, you stop counting.",
       },
-      ...oaths("orrin-vey", "Orrin").map((a) => ({
-        ...a,
-        at: "lantern-house",
-      })),
+      ...oaths("orrin-vey", "Orrin").map((a) => ({ ...a, at: "hall-cistern" })),
     ],
   }
 );
 new Npc(
   "dessa-marl",
   "Dessa Marl",
-  "Mind the third kiln. It's the only one still warm, and it bites.",
+  "Mind the kiln. It's the only one still warm, and it bites.",
   {
-    offers: [
-      "meet-dessa-marl",
-      "trial-dessa-marl",
-      "forms-dessa-marl",
-      "home-dessa-marl",
+    offers: ["forms-dessa-marl"],
+    home: { location: "hall" },
+    week: [
+      { at: "hall-kiln", open: 8, close: 12 },
+      { at: "the-kilns", open: 12, close: 16, days: [1, 4] },
+      { at: "hall-kiln", open: 12, close: 16, days: [0, 2, 3, 5, 6] },
     ],
-    hours: { open: 8, close: 16 },
-    home: { location: "hall", when: "resident:dessa-marl" },
     actions: [
       {
-        at: "the-kilns",
+        at: "hall-kiln",
         id: "practice-dessa-marl",
         repeat: true,
         hours: 4,
         label: "Feed the kiln",
-        requires: { flags: ["met:dessa-marl"] },
-        effect: practice("dessa-marl", 2),
+        effect: practice("dessa-marl"),
         text: 'Charcoal in, draught open, draught closed. She says "less" twice and nothing else.',
       },
-      ...oaths("dessa-marl", "Dessa").map((a) => ({ ...a, at: "the-kilns" })),
+      ...oaths("dessa-marl", "Dessa").map((a) => ({ ...a, at: "hall-kiln" })),
     ],
   }
 );
@@ -293,6 +295,7 @@ new Location(
         "felt-cap",
         "fur-lined-boots",
         "rations",
+        "camp-pack",
       ],
       ranked: { 1: shelf(1), 2: shelf(2) },
       cut: 0.15,
@@ -338,12 +341,6 @@ new Location(
         label: "Settle Fenn's lien",
         text: "Twelve thousand, counted twice.",
       },
-      {
-        id: "yard-receipt",
-        quest: "errand-ira-vell-2",
-        label: "Ask Pell for the yard's receipt",
-        text: 'Pell writes it without looking up. "Sweat. Received in full." He stamps it anyway.',
-      },
     ],
   }
 );
@@ -354,6 +351,9 @@ new Location(
   [
     { to: "town-square" },
     { to: "hall" },
+    { to: "the-forge" },
+    { to: "the-stillroom" },
+    { to: "lantern-house", hours: 0.5 },
     { to: "breakwater", hours: 1 },
     { to: "the-shingle" },
   ],
@@ -362,34 +362,67 @@ new Location(
 new Location(
   "hall",
   "Training Hall (Home)",
-  "A training hall with nobody training in it. The practice floor runs the length of the room, swept once and not since; the racks along the wall hold dust. Off the far end, the teachers' quarters stand open on stripped beds. Osric's rooms are up the stair, and under the boards by the far wall there is a trapdoor.",
-  [{ to: "harbor-row" }, { to: "hall-cellar" }],
+  "A training hall with its teachers in it. The practice floor runs the length of the room; doors off it go to the yard, the smithy, the still, the cistern and the kiln, and the six who keep them come and go by the hour. Osric's rooms are up the stair, and under the boards by the far wall there is a trapdoor.",
+  [
+    { to: "harbor-row" },
+    { to: "hall-yard", hours: 0 },
+    { to: "hall-smithy", hours: 0 },
+    { to: "hall-still", hours: 0 },
+    { to: "hall-cistern", hours: 0 },
+    { to: "hall-kiln", hours: 0 },
+    { to: "hall-cellar", hours: 0 },
+  ],
   {
     requires: "hall-key",
     canRest: true,
-    after: [
-      {
-        when: "resident:ira-vell",
-        describe:
-          "The practice floor is swept and the first rack on the wall holds blades, oiled and in order — Ira's. The far quarters have a lamp in them after dark. Osric's rooms are up the stair; the trapdoor is under the boards by the far wall.",
-      },
-    ],
     deed: "act:pay-lien",
-    upgrades: [
-      {
-        id: "hall-quarters",
-        name: "Teachers' quarters",
-        opens: "a master can live here",
-        gold: 60,
-        items: [
-          { id: "kelp-fiber", qty: 6 },
-          { id: "crab-shell", qty: 4 },
-        ],
-        hours: 3,
-        text: "Rope, shell and a day's sweat. The far quarters have beds in them again, and a door that shuts.",
+    // the floor is the outline; the rooms sit off it, the door onto the row at the bottom
+    plan: {
+      size: [8, 5],
+      boxes: {
+        "harbor-row": [3, 4.3, 2.5, 0.7],
+        "hall-yard": [0, 0, 3, 2.2],
+        "hall-smithy": [3.3, 0, 2.2, 2.2],
+        "hall-kiln": [5.8, 0, 2.2, 2.2],
+        "hall-still": [0, 2.7, 2, 1.1],
+        "hall-cistern": [0, 4, 3, 1],
+        "hall-cellar": [5.5, 3.6, 2.5, 1.4],
       },
-    ],
+    },
   }
+);
+new Location(
+  "hall-yard",
+  "The hall's yard",
+  "Packed earth between the hall and the wall, a rack of blunt blades, straw men at the far end.",
+  [{ to: "hall" }]
+);
+new Location(
+  "hall-smithy",
+  "The hall's smithy",
+  "A lean-to off the yard with a forge in it that was cold for twenty years and isn't now.",
+  [{ to: "hall" }],
+  { bench: { craft: "smith", label: "The hall's anvil" } }
+);
+new Location(
+  "hall-still",
+  "The still",
+  "A narrow room under the stair. Shelves to the ceiling, every bottle labeled, and a smell of salt and something bitter.",
+  [{ to: "hall" }],
+  { bench: { craft: "alchemy", label: "The hall's still" } }
+);
+new Location(
+  "hall-cistern",
+  "The cistern",
+  "Stone steps down to a tank the sea fills through a grate. The water rises and falls with the harbor, and so does the air.",
+  [{ to: "hall" }]
+);
+new Location(
+  "hall-kiln",
+  "The hall's kiln",
+  "One brick kiln in the back court, kept warm, with charcoal stacked under oilcloth beside it.",
+  [{ to: "hall" }],
+  { bench: { craft: "smith", label: "The hall's kiln" } }
 );
 new Location(
   "gull-and-lamp",
@@ -401,27 +434,10 @@ new Location(
 new Location(
   "sword-yard",
   "The sword yard",
-  "Packed earth, a rack of blunt blades, an old man watching.",
+  "Packed earth, a rack of blunt blades. Some afternoons, an old man watching.",
   [{ to: "town-square" }],
   {
-    npcs: ["ira-vell"],
     hours: { open: 6, close: 20 },
-    actions: [
-      {
-        id: "yard-trial",
-        quest: "the-yard-trial",
-        label: "Stand in the ring",
-        fight: ["yards-second"],
-        text: "It lasts longer than it should and ends faster than you expect. Ira's second lowers his blade and steps out of the ring without a word.",
-      },
-      {
-        id: "train-forms",
-        quest: "first-forms",
-        hours: 4,
-        label: "Train until dusk",
-        text: "Forms until your arms shake, then forms until they stop. Ira corrects your feet twice and says nothing else all afternoon.",
-      },
-    ],
   }
 );
 new Location(
@@ -449,7 +465,7 @@ new Location(
   ],
   {
     roam: {
-      monsters: ["kiln-wolf", "kiln-wolf", "grey-alpha"],
+      monsters: ["kiln-wolf", "kiln-wolf", "wolf-alpha"],
       when: "night",
       chance: 0.5,
       text: "They come out of the dark where the road bends: two, then the big one. It's done by the time the moon clears the hill.",
@@ -472,23 +488,6 @@ new Location(
     { to: "kilns-cold" }, // the gate — exits.tsx greys it with the Guild's admission reason
   ],
   {
-    npcs: ["dessa-marl"],
-    actions: [
-      {
-        id: "the-cold-kiln",
-        quest: "trial-dessa-marl",
-        label: "Open the third kiln",
-        fight: ["ash-wisp"],
-        text: "A coal that drifts. It burns from where you aren't, until you stop chasing it and close the draught. Dessa watches the kiln, not you.",
-      },
-      {
-        id: "tend-the-fire",
-        quest: "forms-dessa-marl",
-        hours: 4,
-        label: "Tend the fire till dusk",
-        text: "Too hot, then too cold, then — for an hour nobody mentions — right. Your hands know before you do.",
-      },
-    ],
     bench: { craft: "smith", label: "The third kiln" },
   }
 );
@@ -499,24 +498,7 @@ new Location(
   "A strip of trampled grass along the inside of the wall, straw men at the far end, and a woman waxing a string.",
   [{ to: "town-gate" }],
   {
-    npcs: ["maud-kestrel"],
     hours: { open: 7, close: 18 },
-    actions: [
-      {
-        id: "loose-at-the-mark",
-        quest: "trial-maud-kestrel",
-        label: "Loose at the mark",
-        fight: ["running-mark"],
-        text: "A straw man on a rope, and someone on the far end who hates you. Three in the dirt, then one in the straw. Maud lets the rope go slack.",
-      },
-      {
-        id: "loose-till-dark",
-        quest: "forms-maud-kestrel",
-        hours: 4,
-        label: "Loose till dark",
-        text: "A hundred arrows, then a hundred more. By the end she isn't watching your hands anymore, which is the only praise she has.",
-      },
-    ],
   }
 );
 
@@ -526,17 +508,7 @@ new Location(
   "Heat you feel from the street. One man, one anvil, and a bar of iron that is being argued with.",
   [{ to: "harbor-row" }],
   {
-    npcs: ["tobin-ashe"],
     hours: { open: 6, close: 19 },
-    actions: [
-      {
-        id: "forge-blank",
-        quest: "trial-tobin-ashe",
-        hours: 3,
-        label: "Work the iron",
-        text: "The bar fights you for an hour and then, somewhere in the second, stops. What comes off the anvil is ugly and straight. Tobin turns it over twice and grunts.",
-      },
-    ],
     bench: { craft: "smith", label: "The anvil" },
   }
 );
@@ -547,17 +519,7 @@ new Location(
   "A narrow room behind a narrow door. Shelves to the ceiling, every bottle labeled, and a smell of salt and something bitter.",
   [{ to: "harbor-row" }],
   {
-    npcs: ["hesper-quill"],
     hours: { open: 9, close: 17 },
-    actions: [
-      {
-        id: "first-draught",
-        quest: "trial-hesper-quill",
-        hours: 3,
-        label: "Brew under her eye",
-        text: "She says nothing for three hours, which you learn is how she teaches. What's in the flask at the end is cloudy, and it works.",
-      },
-    ],
     bench: { craft: "alchemy", label: "The still" },
   }
 );
@@ -568,24 +530,7 @@ new Location(
   "The old light on the point, its lamp trimmed but unlit by day. The sea is loud here in a way it isn't in town.",
   [{ to: "harbor-row", hours: 0.5 }],
   {
-    npcs: ["orrin-vey"],
     hours: { open: 10, close: 22 },
-    actions: [
-      {
-        id: "the-lamp-wisp",
-        quest: "trial-orrin-vey",
-        label: "Open the lamp",
-        fight: ["lamp-wisp"],
-        text: "It comes out of the lamp like a breath and goes for your eyes. You learn, fast, where it won't go. When it gutters, Orrin closes the lamp on it without hurry.",
-      },
-      {
-        id: "sit-with-the-tide",
-        quest: "forms-orrin-vey",
-        hours: 4,
-        label: "Sit through the tide",
-        text: "Six hours of the sea going out and coming back. Somewhere in the fifth you stop hearing it and start feeling where it is.",
-      },
-    ],
   }
 );
 new Location(

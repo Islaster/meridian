@@ -1,7 +1,7 @@
-import { Weapon } from "../../models/item";
+import { Weapon } from "@/models/item";
 
 // starting junk · tier 0
-export const walkingStick = new Weapon(
+new Weapon(
   "walking-stick",
   "Walking stick",
   "club",
@@ -10,7 +10,7 @@ export const walkingStick = new Weapon(
   { id: "driftwood", qty: 1 },
   { id: "kelp-fiber", qty: 1 },
 ]);
-export const beltKnife = new Weapon(
+new Weapon(
   "belt-knife",
   "Belt knife",
   "sword",
@@ -20,10 +20,10 @@ export const beltKnife = new Weapon(
   { id: "cloth", qty: 1 },
   { id: "charcoal", qty: 1 },
 ]);
-export const rustyBlade = new Weapon("rusty-blade", "Rusty blade", "sword", 4, {
+new Weapon("rusty-blade", "Rusty blade", "sword", 4, {
   price: 15,
 }); // found: rust isn't made
-export const huntingBow = new Weapon(
+new Weapon(
   "hunting-bow",
   "Hunting bow",
   "bow",
@@ -33,7 +33,7 @@ export const huntingBow = new Weapon(
   { id: "kelp-fiber", qty: 1 },
   { id: "pine-resin", qty: 1 },
 ]);
-export const goblinSling = new Weapon(
+new Weapon(
   "goblin-sling",
   "Goblin sling",
   "bow",
@@ -42,7 +42,7 @@ export const goblinSling = new Weapon(
 ); // goblin-made: found
 
 // town gear
-export const ironSword = new Weapon("iron-sword", "Iron sword", "sword", 6, {
+new Weapon("iron-sword", "Iron sword", "sword", 6, {
   reqStats: { str: 7 },
   price: 60,
 }).made("smith", [
@@ -50,7 +50,7 @@ export const ironSword = new Weapon("iron-sword", "Iron sword", "sword", 6, {
   { id: "leather", qty: 1 },
   { id: "charcoal", qty: 1 },
 ]);
-export const woodAxe = new Weapon("wood-axe", "Wood axe", "axe", 7, {
+new Weapon("wood-axe", "Wood axe", "axe", 7, {
   reqStats: { str: 8 },
   price: 55,
 }).made("smith", [
@@ -58,7 +58,7 @@ export const woodAxe = new Weapon("wood-axe", "Wood axe", "axe", 7, {
   { id: "ash", qty: 1 },
   { id: "charcoal", qty: 1 },
 ]);
-export const shortBow = new Weapon("short-bow", "Short bow", "bow", 5, {
+new Weapon("short-bow", "Short bow", "bow", 5, {
   reqStats: { dex: 7 },
   price: 60,
 }).made("fletch", [
@@ -68,7 +68,7 @@ export const shortBow = new Weapon("short-bow", "Short bow", "bow", 5, {
 ]);
 
 // shop · the kiln yard's smiths left good steel behind
-export const kilnsteelSword = new Weapon(
+new Weapon(
   "kilnsteel-sword",
   "Kilnsteel sword",
   "sword",
@@ -79,7 +79,7 @@ export const kilnsteelSword = new Weapon(
   { id: "leather", qty: 1 },
   { id: "charcoal", qty: 1 },
 ]);
-export const handAxe = new Weapon("hand-axe", "Hand axe", "axe", 10, {
+new Weapon("hand-axe", "Hand axe", "axe", 10, {
   reqLevel: 4,
   reqStats: { str: 7 },
   price: 130,
@@ -90,7 +90,7 @@ export const handAxe = new Weapon("hand-axe", "Hand axe", "axe", 10, {
 ]);
 
 // found · best for someone — authored on top of the grid, never made
-export const halesBlade = new Weapon(
+new Weapon(
   "hales-blade",
   "Hale's blade",
   "sword",
@@ -102,7 +102,7 @@ export const halesBlade = new Weapon(
       "Hale's. The edge finds the gap it has no business finding — the luckier you are, the more often.",
   }
 );
-export const alphaFang = new Weapon(
+new Weapon(
   "alphas-fang",
   "The alpha's fang",
   "knife",
@@ -111,16 +111,16 @@ export const alphaFang = new Weapon(
     reqLevel: 4,
     grade: "rare",
     price: 90,
-    scaling: { stat: "agi", per: 0.5, from: 5 },
+    perks: [{ kind: "scaling", stat: "agi", per: 0.5, from: 5 }],
     describe:
       "The alpha's own tooth, set in a grip. Quick hands make it quicker.",
   }
 );
-export const rimeEdge = new Weapon("rime-edge", "Rime edge", "sword", 10, {
+new Weapon("rime-edge", "Rime edge", "sword", 10, {
   reqLevel: 5,
   grade: "rare",
   price: 160,
-  scaling: { stat: "int", per: 0.5, from: 5 },
+  perks: [{ kind: "scaling", stat: "int", per: 0.5, from: 5 }],
   describe:
     "Rime glass worked into a blade that never warms. It cuts cleaner the more you understand it.",
 });

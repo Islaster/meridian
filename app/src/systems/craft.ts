@@ -1,32 +1,37 @@
-import type { GameState } from "../state/types";
-import { Item, GRADES, type Grade, type Craft } from "../models/item";
-import { variantId } from "../data/items/forge";
-import { PlayerClass } from "../data/classes";
-import { countItem, takeItem, giveItem } from "./inventory";
+import type { GameState } from "@/state/types";
+import { Item, GRADES, type Grade, type Craft } from "@/models/item";
+import { variantId } from "@/data/items/forge";
+import { held } from "./classes";
+import { count, takeItem, giveItem } from "./inventory";
 import { notify } from "./notices";
 
+// A thing that can be made: the normal-grade piece; its graded variants hang off it.
 export interface Make {
-  id: string; // the normal-grade piece; variants hang off it
+  id: string;
   name: string;
   craft: Craft;
-  needs: string;
+  needs: string; // "2 iron · 1 leather · 1 charcoal"
   materials: { id: string; qty: number }[];
 }
 
-export const STRIKES = 7; // heat 1 · draw 3 · quench 1 · finish 2 — a perfect piece
+const STRIKES = 7; // heat 1 · draw 3 · quench 1 · finish 2 — a perfect piece
 const ix = (g: Grade) => GRADES.indexOf(g);
 const TOP = GRADES.length - 1;
 
-// one above the class's own grade; Phantasm gear only from a Phantasm-grade crafter
-export const classCeiling = (s: GameState): number => {
-  if (!s.player.class) return 0;
-  const c = ix(PlayerClass.get(s.player.class).grade);
+export const canCraft = (s: GameState, craft: Craft) =>
+  held(s).some((c) => c.crafts.includes(craft)); // a craft you learned stays learned, whatever name is on top
+
+// one above the grade of your best class in that craft; Phantasm gear only from a Phantasm-grade crafter
+const classCeiling = (s: GameState, craft: Craft): number => {
+  const mine = held(s).filter((c) => c.crafts.includes(craft));
+  if (!mine.length) return 0;
+  const c = Math.max(...mine.map((k) => ix(k.grade)));
   return c === TOP ? TOP : Math.min(c + 1, TOP - 1);
 };
 
 export const missing = (s: GameState, r: Make) =>
   r.materials
-    .filter((m) => countItem(s.bag, m.id) < m.qty)
+    .filter((m) => count(s.bag, m.id) < m.qty)
     .map((m) => Item.get(m.id).name.toLowerCase());
 
 // floor: the combined grade of what went in · ceiling: one above the best, capped by the class
@@ -35,13 +40,14 @@ export const gradeWindow = (s: GameState, r: Make) => {
     Array<number>(m.qty).fill(ix(Item.get(m.id).grade))
   );
   const lo = Math.floor(grades.reduce((a, b) => a + b, 0) / grades.length);
-  const hi = Math.max(lo, Math.min(Math.max(...grades) + 1, classCeiling(s)));
+  const hi = Math.max(
+    lo,
+    Math.min(Math.max(...grades) + 1, classCeiling(s, r.craft))
+  );
   return { lo, hi, floor: GRADES[lo], ceiling: GRADES[hi] };
 };
 
-export const variant = (r: Make, grade: Grade): Item =>
-  Item.registry.get(variantId(r.id, grade)) ?? Item.get(r.id);
-
+// the piece comes out where the hands put it in the window; a cracked quench costs a grade
 export const craft = (
   s: GameState,
   r: Make,
@@ -53,28 +59,25 @@ export const craft = (
   const at = Math.max(w.lo, Math.min(w.hi, w.lo + earned - (quenched ? 0 : 1)));
   let bag = s.bag;
   for (const m of r.materials) bag = takeItem(bag, m.id, m.qty);
-  const made = variant(r, GRADES[at]);
-  bag = giveItem(bag, made.id);
+  const made = Item.registry.get(variantId(r.id, GRADES[at])) ?? Item.get(r.id);
   return notify(
     {
       ...s,
-      bag,
+      bag: giveItem(bag, made.id),
       counters: { ...s.counters, forged: (s.counters.forged ?? 0) + 1 },
     },
     `《Made》 ${made.name}`
   );
 };
 
-export const canCraft = (s: GameState, craft: Craft) =>
-  !!s.player.class && PlayerClass.get(s.player.class).crafts.includes(craft);
-
+// what a bench offers: basics for anyone, the rest for the craft's own
 export const recipes = (s: GameState, craft: Craft): Make[] =>
-  [...Item.registry.values()]
+  Item.all()
     .filter(
       (it) =>
         it.recipe?.craft === craft &&
         it.grade === "normal" &&
-        (it.recipe!.basic || canCraft(s, craft)) // basics for anyone; gear for the craft's own
+        (it.recipe.basic || canCraft(s, craft))
     )
     .map((it) => ({
       id: it.id,

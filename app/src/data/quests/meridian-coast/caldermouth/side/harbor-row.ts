@@ -1,4 +1,4 @@
-import { Quest } from "../../../../../models/quest";
+import { Quest } from "@/models/quest";
 
 new Quest(
   "find-the-hall",
@@ -43,5 +43,3 @@ new Quest(
       'Dunny swears at no one in particular and pushes two flasks across the counter. "Then you\'ll need these more than I do."',
   }
 );
-
-if (import.meta.hot) import.meta.hot.accept();

@@ -1,196 +1,51 @@
-import { useState, useRef, useEffect } from "react";
-import { useGame } from "../../state/gamecontext";
-import { Dungeon, type Room } from "../../data/world/land";
-import { Item } from "../../data/items";
-import { giveItem, hasItem } from "../../systems/inventory";
-import { progress, narrate } from "../../systems/quests";
-import type { GameState } from "../../state/types";
-import type { Note } from "../../systems/types";
-import { SERIF } from "../../ui/cards";
-import Battle from "../battle";
-import Death from "../death";
-import { surveyed } from "../../systems/dungeon";
-import { Monster } from "../../data/monsters";
-import { Location } from "../../data/world/locations";
-import { type Spoils } from "../../systems/combat";
-import PlayerMenu from "../menu/playerMenu";
-import LevelUp from "../menu/levelUp";
-import QuestComplete from "../world/questcomplete";
-import { advance, dur } from "../../systems/time";
-import { night, type Bed } from "../../systems/night";
+import { usePlay, useMidnight } from "@/screens/play/useplay";
+import Frame, { Log } from "@/screens/play/frame";
+import { Dungeon } from "@/data/world/land";
+import { Monster } from "@/data/monsters";
+import { Item } from "@/data/items";
+import { Location } from "@/data/world/locations";
+import { dur } from "@/systems/time";
+import {
+  surveyed,
+  here,
+  hostile,
+  packed,
+  roomDone,
+  step,
+  leave,
+  openChest,
+  harvest,
+  sit,
+  winRoom,
+} from "@/systems/dungeon";
+import { ptr, para, heading, link, rowBetween } from "@/ui/styles";
+import DungeonMap from "./map";
 
-const wrap = {
-  minHeight: "100vh",
-  background: "#000",
-  color: "rgba(233,236,242,0.92)",
-  font: `400 clamp(15px, 1.5vw, 19px) ${SERIF}`,
-  padding: "48px 24px",
-  maxWidth: 720,
-  margin: "0 auto",
-  display: "flex",
-  flexDirection: "column" as const,
-  gap: 18,
-};
-
-const ptr = {
-  font: "inherit",
-  color: "inherit",
-  background: "transparent",
-  border: "1px solid rgba(233,236,242,0.28)",
-  padding: "8px 16px",
-  cursor: "pointer",
-  textAlign: "left" as const,
-};
-
+// Inside: one room at a time, each with the one thing it's for.
 export default function DungeonScreen() {
-  const { state, changeState, rollback, commit } = useGame();
-  const [dead, setDead] = useState(false);
+  const play = usePlay();
+  const { state, update, land } = play;
   const d = Dungeon.get(state.world.dungeon!);
-  const room = d.rooms[state.world.room ?? d.entrance];
-  const [notes, setNotes] = useState<Note[]>([]);
-  const [fight, setFight] = useState<Room | null>(null);
-  const before = useRef<GameState>(state);
-  const [menu, setMenu] = useState<
-    null | "inventory" | "character" | "skills" | "journal"
-  >(null);
-  const clearLevelUp = () =>
-    setNotes(notes.filter((n) => n.kind !== "levelup"));
-  const flag = (k: string) => `${k}:${d.id}:${room.id}`;
-
-  const known = surveyed(state, d);
-  const has = (k: string) => state.done.includes(flag(k));
-  const apply = (n: GameState) =>
-    (Object.keys(n) as (keyof GameState)[]).forEach((k) =>
-      changeState(k, n[k])
-    );
-  // the dungeon's own hours, and the town's at the gate's tempo
-  const spend = (s: GameState, h: number): GameState => ({
-    ...s,
-    time: advance(s.time, h * d.tempo),
-    world: { ...s.world, delve: (s.world.delve ?? 0) + h },
-  });
-
-  // the night inside: land is just ground; beyond a gate, a camp pack is a bed and nothing else is
-  const packed = d.kind === "dungeon" && hasItem(state.bag, "camp-pack");
-  const sleepHere = (bed: Bed) => {
-    const r = night(state, bed, room.name.toLowerCase());
-    apply(r.state);
-    commit();
-    setNotes(r.notes);
-  };
-  useEffect(() => {
-    if (state.time.hour >= 24 && !fight && !dead)
-      sleepHere(packed ? "camp" : "rough");
-  }, [state.time.hour, fight, dead]); // eslint-disable-line react-hooks/exhaustive-deps
+  const room = here(state, d);
+  const done = (k: string) => roomDone(state, d, room, k);
+  const fight = hostile(state, d, room);
+  useMidnight(
+    play,
+    packed(state, d) ? "camp" : "rough",
+    room.name.toLowerCase()
+  );
 
   const move = (to: string) => {
-    if (Location.registry.has(to)) {
-      const out = spend(state, d.pace); // the walk out is a step like any other
-      apply({
-        ...out,
-        world: {
-          ...out.world,
-          area: to,
-          dungeon: undefined,
-          room: undefined,
-          delve: undefined,
-        },
-      });
-      return;
-    }
-    const next = d.rooms[to];
-    let s: GameState = spend(
-      { ...state, world: { ...state.world, room: to } },
-      d.pace
-    );
-    const out: Note[] = [];
-    if (
-      next.type === "trap" &&
-      next.trap &&
-      !s.done.includes(`trap:${d.id}:${to}`)
-    ) {
-      const t = next.trap,
-        ok = (s.player.stats[t.stat] ?? 0) >= t.dc;
-      out.push({ kind: "story", text: ok ? t.pass : t.fail });
-      s = {
-        ...s,
-        done: [...s.done, `trap:${d.id}:${to}`],
-        player: ok
-          ? s.player
-          : { ...s.player, hp: Math.max(1, s.player.hp - t.damage) },
-      };
-    }
-    setNotes(out);
-    apply(s);
+    if (Location.registry.has(to)) return update(leave(state, d, to));
+    const r = step(state, d, to);
+    land(state, r.state, r.notes);
   };
+  const act = (next: typeof state, text?: string) =>
+    land(state, next, text ? [{ kind: "story", text }] : []);
 
-  const open = () => {
-    let bag = state.bag;
-    for (const l of room.loot ?? []) bag = giveItem(bag, l.id, l.qty ?? 1);
-    setNotes([
-      {
-        kind: "reward",
-        text: `Found: ${(room.loot ?? [])
-          .map((l) => Item.get(l.id).name)
-          .join(", ")}.`,
-      },
-    ]);
-    apply({ ...state, bag, done: [...state.done, flag("chest")] });
-  };
-
-  const won = (sp: Spoils) => {
-    let bag = { ...state.bag, gold: state.bag.gold + sp.gold };
-    for (const id of sp.items) bag = giveItem(bag, id, 1);
-    let s: GameState = { ...state, bag, done: [...state.done, flag("room")] };
-    if (room.type === "boss") {
-      const flags = [
-        `cleared:${d.id}`,
-        ...(d.kind === "dungeon"
-          ? [`dormant:${d.id}:${s.time.dayId + d.dormancy}`]
-          : []),
-      ];
-      s = progress(
-        { ...s, done: [...s.done, ...flags] },
-        { kind: "clear", dungeon: d.id }
-      );
-    }
-
-    setFight(null);
-    setNotes(narrate(before.current, s));
-    apply(s);
-  };
-
-  const died = () => rollback();
-  if (dead)
-    return (
-      <Death
-        onContinue={() => {
-          setDead(false);
-          died();
-        }}
-      />
-    );
-  if (fight)
-    return (
-      <Battle
-        monsters={fight.monsters ?? []}
-        onWin={won}
-        onFlee={() => setFight(null)}
-        onDeath={() => setDead(true)}
-      />
-    );
-  const hostile =
-    (room.type === "combat" || room.type === "boss") && !has("room");
   return (
-    <div style={wrap}>
-      <div
-        style={{
-          opacity: 0.55,
-          letterSpacing: "0.1em",
-          display: "flex",
-          justifyContent: "space-between",
-        }}
-      >
+    <Frame play={play}>
+      <div style={{ ...rowBetween, opacity: 0.55, letterSpacing: "0.1em" }}>
         <span>
           {d.name}
           {state.world.delve ? ` · ${dur(state.world.delve)} inside` : ""}
@@ -199,137 +54,91 @@ export default function DungeonScreen() {
           {state.player.name} · {state.player.hp}/{state.player.maxHp} hp
         </span>
       </div>
-      <h2
-        style={{
-          margin: 0,
-          fontFamily: "inherit",
-          fontWeight: 400,
-          fontSize: "1.4em",
-          letterSpacing: "0.06em",
-          textTransform: "capitalize",
-          color: "inherit",
-        }}
-      >
-        {room.name}
-      </h2>
-      <p style={{ margin: 0, lineHeight: 1.6 }}>{room.describe}</p>
-      {known && (
+      <h2 style={{ ...heading, textTransform: "capitalize" }}>{room.name}</h2>
+      <p style={para}>{room.describe}</p>
+      {surveyed(state, d) && (
         <div style={{ opacity: 0.6, fontSize: "0.9em" }}>
           {d.posting.monsters.map((m) => Monster.get(m).name).join(" · ")}
         </div>
       )}
-      {notes
-        .filter((n) => n.kind !== "complete")
-        .map((n, i) => (
-          <p
-            key={i}
-            style={{
-              margin: 0,
-              lineHeight: 1.6,
-              opacity: 0.85,
-              fontStyle: "italic",
-            }}
-          >
-            {n.text}
-          </p>
-        ))}
+      <Log play={play} />
+      {d.plan ? (
+        <DungeonMap
+          state={state}
+          d={d}
+          room={room}
+          locked={!!fight}
+          onMove={move}
+        />
+      ) : (
+        !fight &&
+        room.exits.map((id) => (
+          <button key={id} style={ptr} onClick={() => move(id)}>
+            {d.rooms[id] ? "→" : "↑"} {(d.rooms[id] ?? Location.get(id)).name}
+          </button>
+        ))
+      )}
 
-      {hostile && (
+      {fight && (
         <button
           style={ptr}
-          onClick={() => {
-            before.current = state;
-            setFight(room);
-          }}
+          onClick={() =>
+            play.setFight({
+              monsters: room.monsters ?? [],
+              then: (s, sp) => winRoom(s, d, room, sp),
+            })
+          }
         >
           Fight
         </button>
       )}
-      {room.type === "treasure" && !has("chest") && (
-        <button style={ptr} onClick={open}>
+      {room.type === "treasure" && !done("chest") && (
+        <button
+          style={ptr}
+          onClick={() =>
+            act(
+              openChest(state, d, room),
+              `Found: ${(room.loot ?? [])
+                .map((l) => Item.get(l.id).name)
+                .join(", ")}.`
+            )
+          }
+        >
           Open the crate
         </button>
       )}
-      {room.harvest && !has("gather") && (
+      {room.harvest && !done("gather") && (
         <button
           style={ptr}
-          onClick={() => {
-            const h = room.harvest!;
-            setNotes([{ kind: "story", text: h.text }]);
-            const s = spend(state, h.hours ?? 0);
-            apply({
-              ...s,
-              bag: giveItem(s.bag, h.id, h.qty ?? 1),
-              done: [...s.done, flag("gather")],
-            });
-          }}
+          onClick={() => act(harvest(state, d, room), room.harvest!.text)}
         >
           Gather{room.harvest.hours ? ` · ${room.harvest.hours}h` : ""}
         </button>
       )}
-      {packed && !hostile && (
-        <button style={ptr} onClick={() => sleepHere("camp")}>
-          Make camp · sleep till morning
-        </button>
-      )}
-      {room.type === "stat" && !has("stat") && (
+      {room.type === "stat" && !done("stat") && (
         <button
           style={ptr}
-          onClick={() => {
-            setNotes([
-              {
-                kind: "story",
-                text: "Something in the air here settles into you and stays.",
-              },
-            ]);
-            apply({
-              ...state,
-              player: {
-                ...state.player,
-                statPoints: state.player.statPoints + 1,
-              },
-              done: [...state.done, flag("stat")],
-            });
-          }}
+          onClick={() =>
+            act(
+              sit(state, d, room),
+              "Something in the air here settles into you and stays."
+            )
+          }
         >
           Sit a while
         </button>
       )}
-      {!hostile &&
-        room.exits.map((id) => {
-          const dest = d.rooms[id] ?? Location.get(id);
-          return (
-            <button key={id} style={ptr} onClick={() => move(id)}>
-              {d.rooms[id] ? "→" : "↑"} {dest.name}
-            </button>
-          );
-        })}
-      <span style={{ cursor: "pointer" }} onClick={() => setMenu("inventory")}>
+      {packed(state, d) && !fight && (
+        <button
+          style={ptr}
+          onClick={() => play.sleep("camp", room.name.toLowerCase())}
+        >
+          Make camp · sleep till morning
+        </button>
+      )}
+      <span style={link} onClick={() => play.setMenu("inventory")}>
         [ menu ]
       </span>
-      {menu && <PlayerMenu initialTab={menu} onClose={() => setMenu(null)} />}
-      {(() => {
-        const c = notes.find((n) => n.kind === "complete");
-        return c?.id ? (
-          <QuestComplete
-            id={c.id}
-            onClose={() => setNotes(notes.filter((n) => n.kind !== "complete"))}
-          />
-        ) : null;
-      })()}
-      {(() => {
-        const l = notes.find((n) => n.kind === "levelup");
-        return l?.level && !notes.some((n) => n.kind === "complete") ? (
-          <LevelUp
-            level={l.level}
-            onAllocate={() => {
-              clearLevelUp();
-              setMenu("character");
-            }}
-            onLater={clearLevelUp}
-          />
-        ) : null;
-      })()}
-    </div>
+    </Frame>
   );
 }

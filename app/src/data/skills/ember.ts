@@ -1,4 +1,4 @@
-import { Skill } from "../../models/skill";
+import { Skill } from "@/models/skill";
 
 // ── Stoker · foundational ──────────────────────────────────────────────────
 new Skill("spark", "Spark", "ember", {
@@ -33,5 +33,3 @@ new Skill("flare", "Flare", "ember", {
   family: "burst",
   describe: "Everything banked, all at once.",
 });
-
-if (import.meta.hot) import.meta.hot.accept();

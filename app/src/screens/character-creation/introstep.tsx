@@ -1,8 +1,10 @@
 import { useEffect, useState, type KeyboardEvent } from "react";
-import Passage from "../../ui/passage";
-import SkipButton from "../../ui/skipbutton";
-import { SERIF, MenuButton } from "../../ui/cards";
-import LedgerLine from "../../ui/ledgerline";
+import Passage from "@/ui/passage";
+import SkipButton from "@/ui/skipbutton";
+import MenuButton from "@/ui/menubutton";
+import LedgerLine from "@/ui/ledgerline";
+import { stage, para } from "@/ui/styles";
+import { FONT_READ } from "@/ui/theme";
 
 const BLURB = [
   "Everyone has a Ledger, and always has: a line of pale writing at the edge of sight, that no one wrote, that records. Masters read it before they teach. The Guild built its charters on it. It has never answered a question. It has never been wrong.",
@@ -17,41 +19,22 @@ export default function IntroStep({
 }) {
   const [done, setDone] = useState(false);
   const [skip, setSkip] = useState(false);
-  const [recorded, setRecorded] = useState(false);
   const [name, setName] = useState("");
-  const [confirming, setConfirming] = useState(false);
+  const [step, setStep] = useState<"ask" | "confirm" | "recorded">("ask");
 
-  const record = () => {
-    if (name.trim()) setConfirming(true);
-  };
-  const onKey = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") record();
-  };
+  const record = () => name.trim() && setStep("confirm");
+  const onKey = (e: KeyboardEvent<HTMLInputElement>) =>
+    e.key === "Enter" && record();
   useEffect(() => {
-    if (!recorded) return;
+    if (step !== "recorded") return;
     const id = window.setTimeout(() => onNamed(name.trim()), 1500);
     return () => window.clearTimeout(id);
-  }, [recorded]);
+  }, [step]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <div
-      style={{
-        position: "relative",
-        minHeight: "100vh",
-        background: "#000",
-        color: "rgba(233,236,242,0.92)",
-        font: `400 clamp(16px, 1.8vw, 22px) ${SERIF}`,
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 28,
-        padding: 24,
-        boxSizing: "border-box",
-      }}
-    >
+    <div style={{ ...stage, font: FONT_READ }}>
       <Passage lines={BLURB} complete={skip} onDone={() => setDone(true)} />
-      {done && !confirming && !recorded && (
+      {done && step === "ask" && (
         <>
           <LedgerLine>
             《Name》&nbsp;
@@ -75,15 +58,14 @@ export default function IntroStep({
           <MenuButton label="Continue" onClick={record} />
         </>
       )}
-      {confirming && !recorded && (
+      {step === "confirm" && (
         <>
           <LedgerLine>《Name》 {name.trim()}</LedgerLine>
           <p
             style={{
+              ...para,
               maxWidth: 560,
-              lineHeight: 1.6,
               textAlign: "center",
-              margin: 0,
               opacity: 0.85,
             }}
           >
@@ -91,18 +73,14 @@ export default function IntroStep({
             answer to?
           </p>
           <div style={{ display: "flex", gap: 14 }}>
-            <MenuButton
-              label="It is"
-              onClick={() => {
-                setConfirming(false);
-                setRecorded(true);
-              }}
-            />
-            <MenuButton label="Not yet" onClick={() => setConfirming(false)} />
+            <MenuButton label="It is" onClick={() => setStep("recorded")} />
+            <MenuButton label="Not yet" onClick={() => setStep("ask")} />
           </div>
         </>
       )}
-      {recorded && <LedgerLine>《Recorded》 {name.trim()}</LedgerLine>}
+      {step === "recorded" && (
+        <LedgerLine>《Recorded》 {name.trim()}</LedgerLine>
+      )}
       {!done && <SkipButton onClick={() => setSkip(true)} />}
     </div>
   );

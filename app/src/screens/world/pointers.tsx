@@ -1,26 +1,16 @@
-import type { Town } from "./usetown";
-import { ptr, dim, col, hollow } from "../../ui/styles";
-import { Npc } from "../../data/world/locations";
-import { present } from "../../systems/presence";
-import { owned, buildable, shortfall, costText } from "../../systems/property";
-import { meets, marks } from "../../systems/quests";
-import { allowed } from "../../systems/tutorial";
-import { canCraft } from "../../systems/craft";
-import { actionsAt } from "../../systems/actions";
+import type { World } from "./useworld";
+import { ptr, greyed, dim, col } from "@/ui/styles";
+import { marks } from "@/systems/quests";
+import { allowed } from "@/systems/tutorial";
+import { canCraft } from "@/systems/craft";
+import { available } from "@/systems/actions";
 
-export default function Pointers({ t }: { t: Town }) {
-  const { state, loc, sig, offer } = t;
-  const actions = actionsAt(loc, state).filter(
-    (a) =>
-      (!a.quest || state.quests[a.quest]?.status === "taken") &&
-      !state.done.includes(`act:${a.id}`) &&
-      (!a.requires || meets(state, a.requires))
-  );
-  const shopOk = allowed(state, { kind: "shop" });
-  const boardOk = allowed(state, { kind: "board" });
+// What you can do here: pointers, the counter, the board, the bench. People are on the map.
+export default function Pointers({ w }: { w: World }) {
+  const { state, loc, sig, loan } = w;
   return (
     <div style={col}>
-      {actions.map((a) => {
+      {available(loc, state).map((a) => {
         const short = !!a.gold && state.bag.gold < a.gold;
         const cost = [a.gold && `${a.gold} gold`, a.hours && `${a.hours}h`]
           .filter(Boolean)
@@ -30,9 +20,9 @@ export default function Pointers({ t }: { t: Town }) {
           <button
             key={a.id}
             data-tut={sig.actions[a.id]?.size ? "marked" : undefined}
-            style={{ ...ptr, opacity: short || !ok ? 0.4 : 1 }}
+            style={greyed(short || !ok)}
             disabled={short || !ok}
-            onClick={() => t.act(a)}
+            onClick={() => w.act(a)}
           >
             {a.label}
             {marks(sig.actions[a.id])}
@@ -40,45 +30,11 @@ export default function Pointers({ t }: { t: Town }) {
           </button>
         );
       })}
-      {owned(state, loc) &&
-        buildable(state, loc).map((u) => {
-          const why = shortfall(state, u);
-          return (
-            <button
-              key={u.id}
-              style={{ ...ptr, opacity: why ? 0.4 : 1 }}
-              disabled={!!why}
-              onClick={() => t.raise(u)}
-            >
-              Build {u.name}
-              <span style={dim}>
-                {" "}
-                · {u.opens} · {why ?? costText(u)}
-              </span>
-            </button>
-          );
-        })}
-      {present(state, loc).map((id) => {
-        const ok = allowed(state, { kind: "npc", id });
-        return (
-          <button
-            key={id}
-            style={{ ...ptr, opacity: ok ? 1 : 0.4 }}
-            disabled={!ok}
-            onClick={() => t.talk(id)}
-          >
-            Talk to {Npc.get(id).name}
-            {sig.available.has(id) && " ?"}
-            {sig.pending.has(id) && <span style={hollow}> ?</span>}
-            {marks(sig.npcs[id])}
-          </button>
-        );
-      })}
       {loc.shop && (
         <button
-          style={{ ...ptr, opacity: shopOk ? 1 : 0.4 }}
-          disabled={!shopOk}
-          onClick={() => t.setShop(true)}
+          style={greyed(!allowed(state, { kind: "shop" }))}
+          disabled={!allowed(state, { kind: "shop" })}
+          onClick={() => w.setPanel("shop")}
         >
           {loc.shop.name ?? "The counter"}
           <span style={dim}>
@@ -89,12 +45,11 @@ export default function Pointers({ t }: { t: Town }) {
       )}
       {loc.board && (
         <button
-          style={{
-            ...ptr,
-            opacity: state.player.rank < 1 || !boardOk ? 0.4 : 1,
-          }}
-          disabled={!boardOk}
-          onClick={t.openBoard}
+          style={greyed(
+            state.player.rank < 1 || !allowed(state, { kind: "board" })
+          )}
+          disabled={!allowed(state, { kind: "board" })}
+          onClick={w.openBoard}
         >
           The posting board
           {marks(sig.board)}
@@ -104,15 +59,19 @@ export default function Pointers({ t }: { t: Town }) {
         </button>
       )}
       {loc.bench && (
-        <button data-tut="bench" style={ptr} onClick={() => t.setBench(true)}>
+        <button
+          data-tut="bench"
+          style={ptr}
+          onClick={() => w.setPanel("bench")}
+        >
           {loc.bench.label}
           {!canCraft(state, loc.bench.craft) && (
             <span style={dim}> · basics only</span>
           )}
         </button>
       )}
-      {offer?.map((lo) => (
-        <button key={lo.id} style={ptr} onClick={() => t.take(lo)}>
+      {loan?.map((lo) => (
+        <button key={lo.id} style={ptr} onClick={() => w.take(lo)}>
           {lo.name}
           <span style={dim}> · {lo.blurb}</span>
         </button>

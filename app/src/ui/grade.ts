@@ -1,4 +1,4 @@
-import type { Grade } from "../models/item";
+import type { Grade } from "@/models/item";
 
 // the grade ladder, readable at a glance: a name's color says what it is before you read it
 export const GRADE_NAME: Record<Grade, string> = {

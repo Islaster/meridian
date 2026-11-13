@@ -1,4 +1,4 @@
-import { Quest } from "../../../../../models/quest";
+import { Quest } from "@/models/quest";
 
 new Quest(
   "journal-to-pell",
@@ -85,5 +85,3 @@ new Quest(
     track: [{ board: "clear-the-kilns-cold" }, { dungeon: "kilns-cold" }],
   }
 );
-
-if (import.meta.hot) import.meta.hot.accept();

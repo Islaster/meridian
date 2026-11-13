@@ -1,5 +1,5 @@
-import type { Requirement } from "../models/quest";
-import type { Grade } from "../models/item";
+import type { Requirement } from "@/models/quest";
+import type { Grade } from "@/models/item";
 
 export type Spot = {
   id: string; // action id
@@ -92,7 +92,6 @@ export const SPOTS: Spot[] = [
     kind: "herb",
     rich: THIN,
     cap: 2,
-    requires: { flags: ["met:hesper-quill"] },
   },
   {
     id: "tideline",

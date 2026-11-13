@@ -1,4 +1,6 @@
-type Week =
+import type { Slot } from "@/models/item";
+
+export type Weekday =
   | "monday"
   | "tuesday"
   | "wednesday"
@@ -6,70 +8,62 @@ type Week =
   | "friday"
   | "saturday"
   | "sunday";
-export type QuestStatus = "notTaken" | "offered" | "taken" | "complete";
 
+export interface Time {
+  day: Weekday;
+  hour: number; // 0–24, quarter-hours
+  block: "day" | "night";
+  dayId: number; // days since the first morning, from 1
+}
+
+export type QuestStatus = "notTaken" | "taken" | "complete";
 export interface QuestProgress {
   status: QuestStatus;
-  stage: string;
+  tracked: boolean; // the one the ✦ follows
+  day?: number; // completed on — a posting counts its repeat from here
 }
+
+export type Equipment = Partial<Record<Slot | "ring2", string>>; // slot → item id
+
+export interface Player {
+  name: string;
+  level: number;
+  xp: number;
+  stats: Record<string, number>;
+  statPoints: number;
+  skillPoints: number;
+  skills: Record<string, number>; // skill id → rank
+  hp: number;
+  maxHp: number;
+  mp: number; // the class pool — ki or mana; 0 until a class opens one
+  maxMp: number;
+  rank: number; // license rank — index into RANKS
+  class?: string; // the name on top of the Ledger
+  equipment: Equipment;
+  weary?: { stat: string; amount: number }; // last night's debt — restored at the next proper sleep
+  proficiency: Record<string, number>; // by medium — sword, bow, tide, ember, smith, alchemy, gather:ore…
+}
+
+// What's carried: one map, item id → count. Shelves are read off the item's kind.
+export interface Bag {
+  gold: number;
+  items: Record<string, number>;
+}
+
 export interface GameState {
-  time: { day: Week; hour: number; block: "day" | "night"; dayId: number };
-  player: {
-    name: string;
-    level: number;
-    xp: number;
-    stats: Record<string, number>;
-    equipment?: {
-      head?: string;
-      armor?: string;
-      boots?: string;
-      ringOne?: string;
-      ringTwo?: string;
-      back?: string;
-      mainWeapon?: string;
-      altWeapon?: string;
-      hands?: string;
-    };
-    class?: string;
-    rank: number;
-    statPoints: number;
-    skillPoints: number;
-    skills: Record<string, number>;
-    hp: number;
-    maxHp: number;
-    mp: number; // class pool — mana or ki; 0 until awakened
-    maxMp: number;
-    weary?: { stat: string; amount: number }; // last night's debt — restored at the next sleep
-    proficiency: Record<string, number>; // by medium — sword, bow, tide, ember, smith, alchemy
-    uses: Record<string, number>; // technique — skill id → times used; levels come from this
-  };
-  standing: Record<string, number>;
-  bag: {
-    gold: number;
-    equipment: { name: string; qty: number }[];
-    materials: { name: string; qty: number }[];
-    consumables: { name: string; qty: number }[];
-    questItems: { name: string; qty: number }[];
-  };
+  time: Time;
+  player: Player;
+  bag: Bag;
+  standing: Record<string, number>; // faction → standing
   world: {
-    area: string;
-    region: string;
-    town?: string;
+    area: string; // the location you stand in (or came from, inside a dungeon)
     dungeon?: string;
-    camp?: string;
     room?: string;
-    surveys: string[];
     delve?: number; // hours spent inside this delve, in the dungeon's time
+    surveys: string[]; // dungeons you've surveyed yourself
   };
-  quests: Record<
-    string,
-    {
-      status: "notTaken" | "taken" | "complete";
-      tracked: boolean;
-      day?: number;
-    }
-  >;
-  done: string[];
+  quests: Record<string, QuestProgress>;
+  done: string[]; // the record — every flag ever set (see lib/flags)
   counters: Record<string, number>;
-  notices: string[];
+  notices: string[]; // what the systems said, for the toasts
 }

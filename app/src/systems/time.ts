@@ -1,7 +1,6 @@
-import type { GameState } from "../state/types";
-import type { Hours } from "../models/location";
+import type { Time } from "@/state/types";
+import type { Hours } from "@/models/location";
 
-type Time = GameState["time"];
 const WEEK = [
   "monday",
   "tuesday",
@@ -18,10 +17,14 @@ const TIME_LINES: Record<string, string> = {
   Night:
     "Night. Lamps in a few windows, and the Gull & Lamp's is the brightest.",
 };
-export const HOP = 0.25; // a street hop, in hours — sheet row
-export const WEARY = 0.25; // share of your best stat lost to a late night (min 1)
-export const PRACTICE_PROF = 2; // per session, to the medium
+
+// sheet rows — one number each, tuned here and nowhere else
+export const HOP = 0.25; // a street hop, in hours
+export const WEARY = 0.25; // share of your best stat lost to a bad night (min 1)
+export const PRACTICE_PROF = 2; // proficiency per practice session
 export const PRACTICE_CAP = 2; // sessions per day that count
+const NIGHT_START = 20;
+export const DAY_START = 6;
 
 export const clock = (h: number) =>
   `${Math.floor(h)}:${String(Math.round((h % 1) * 60)).padStart(2, "0")}`;
@@ -33,15 +36,14 @@ export const dur = (h: number) => {
     ? `${Math.floor(m / 60)}h ${m % 60}m`
     : `${m / 60}h`;
 };
-export const NIGHT_START = 20,
-  DAY_START = 6;
 
-export const timeOfDay = (h: number) =>
+const timeOfDay = (h: number) =>
   h >= 20 || h < 6 ? "Night" : h < 12 ? "Morning" : h < 17 ? "Noon" : "Evening";
-
+// the line said when the light changes, or nothing
 export const timeNote = (before: number, after: number): string | null =>
   timeOfDay(before) !== timeOfDay(after) ? TIME_LINES[timeOfDay(after)] : null;
 
+// the clock only moves forward, and stops at midnight — the night system takes it from there
 export function advance(t: Time, hours: number): Time {
   const hour = Math.min(24, t.hour + hours);
   return {
@@ -54,6 +56,5 @@ export function sleep(t: Time): Time {
   const dayId = t.dayId + 1;
   return { day: WEEK[dayId % 7], hour: DAY_START, block: "day", dayId };
 }
-export function isOpen(hours: Hours | undefined, t: Time): boolean {
-  return !hours || (t.hour >= hours.open && t.hour < hours.close);
-}
+export const isOpen = (hours: Hours | undefined, t: Time) =>
+  !hours || (t.hour >= hours.open && t.hour < hours.close);

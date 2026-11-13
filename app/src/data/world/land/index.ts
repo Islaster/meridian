@@ -1,4 +1,5 @@
+// places — authored land, not gates
 import "./tide-cave";
 import "./hall-cellar";
-import "../dungeons/kilns-cold";
-export * from "../../../models/dungeon";
+import "@/data/world/dungeons";
+export * from "@/models/dungeon";

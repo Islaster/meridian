@@ -1,9 +1,10 @@
-import type { GameState } from "../state/types";
-import { type Placed } from "./location";
-import { register } from "./registry";
-import { type Craft } from "./item";
+import type { GameState } from "@/state/types";
+import type { Placed } from "./location";
+import type { Craft } from "./item";
+import { Registry, Entity } from "@/lib/registry";
 
 export type QuestKind = "main" | "side" | "bounty" | "mission";
+// what finishes a quest
 export type Condition =
   | { kind: "have"; item: string }
   | { kind: "visit"; location: string }
@@ -11,6 +12,7 @@ export type Condition =
   | { kind: "clear"; dungeon: string }
   | { kind: "flag"; flag: string }
   | { kind: "armed" };
+// where the ✦ points while a quest is followed
 export type Target =
   | { npc: string } // wherever they are right now
   | { place: string }
@@ -20,17 +22,20 @@ export type Target =
   | { quest: string } // leads wherever that quest leads — done once it's taken
   | { any: Target[] }; // fan out: all of them, until one is done
 
+// A gate, readable: the first thing not met is the reason a pointer greys.
 export interface Requirement {
-  complete?: string[];
+  complete?: string[]; // quests
   items?: string[];
   day?: { from?: number; until?: number };
   hour?: { from?: number; until?: number };
   flags?: string[];
+  not?: string[]; // flags that close it
   rank?: number; // license rank
   standing?: Record<string, number>; // faction → minimum
-  not?: string[];
   stats?: Record<string, number>;
   level?: number;
+  proved?: string; // an npc id — you've passed their trial (the rarer road)
+  counters?: Record<string, number>; // counter → minimum (nights slept straight, kills, days…)
   craft?: Craft;
 }
 export interface Reward {
@@ -39,50 +44,45 @@ export interface Reward {
   items?: string[];
 }
 interface QuestOpts {
-  narration?: string;
-  give?: string[];
-  take?: string[];
+  chain?: string; // the line it belongs to — the journal shows this name over the quest's
+  narration?: string; // said when it completes
+  epilogue?: string; // the card after, when there's a reward worth one
+  give?: string[]; // items handed over on completion
+  take?: string[]; // items taken on completion
   reward?: Reward;
-  next?: string | string[];
+  set?: string[]; // flags written on completion
+  next?: string | string[]; // what it opens
   onComplete?: (s: GameState) => GameState;
-  visible?: Requirement;
-  acceptable?: Requirement;
-  epilogue?: string;
-  chain?: string;
-  track?: Target[];
-  set?: string[];
-  repeat?: number;
-  via?: string;
-  actions?: Placed[];
+  visible?: Requirement; // when it can be offered at all
+  acceptable?: Requirement; // when an offered quest can be taken
+  track?: Target[]; // where the ✦ goes; absent = read off `complete`
+  repeat?: number; // a posting: days until it's up again
+  via?: string; // who hands it out when no npc does: "ledger"
+  actions?: Placed[]; // pointers this quest puts in the world while it's taken
 }
 
-export class Quest {
-  static registry = new Map<string, Quest>();
-  static get(id: string): Quest {
-    const q = Quest.registry.get(id);
-    if (!q) throw new Error(`unknown quest: ${id}`);
-    return q;
-  }
+export class Quest extends Entity {
+  static registry = new Registry<Quest>("quest");
   id: string;
   kind: QuestKind;
   name: string;
   objective: string;
   complete: Condition;
-  narration?: string;
-  give?: string[];
-  take?: string[];
   chain?: string;
-  actions: Placed[];
+  narration?: string;
+  epilogue?: string;
+  give: string[];
+  take: string[];
   reward: Reward;
-  next?: string | string[];
+  set: string[];
+  next: string[];
+  onComplete?: (s: GameState) => GameState;
   visible?: Requirement;
   acceptable?: Requirement;
-  epilogue?: string;
-  set?: string[];
   track?: Target[];
-  via?: string;
   repeat?: number;
-  onComplete?: (s: GameState) => GameState;
+  via?: string;
+  actions: Placed[];
   constructor(
     id: string,
     kind: QuestKind,
@@ -91,6 +91,7 @@ export class Quest {
     complete: Condition,
     o: QuestOpts = {}
   ) {
+    super();
     if (complete.kind === "flag" && /\s/.test(complete.flag))
       throw new Error(`${id}: flag "${complete.flag}" has whitespace`);
     this.id = id;
@@ -98,21 +99,21 @@ export class Quest {
     this.name = name;
     this.objective = objective;
     this.complete = complete;
+    this.chain = o.chain;
     this.narration = o.narration;
+    this.epilogue = o.epilogue;
     this.give = o.give ?? [];
-    this.take = o.take;
+    this.take = o.take ?? [];
     this.reward = o.reward ?? {};
-    this.next = o.next;
+    this.set = o.set ?? [];
+    this.next = [o.next ?? []].flat();
+    this.onComplete = o.onComplete;
     this.visible = o.visible;
     this.acceptable = o.acceptable;
-    this.epilogue = o.epilogue;
-    this.chain = o.chain;
-    this.set = o.set;
-    this.repeat = o.repeat;
     this.track = o.track;
-    this.onComplete = o.onComplete;
+    this.repeat = o.repeat;
     this.via = o.via;
     this.actions = (o.actions ?? []).map((a) => ({ quest: this.id, ...a }));
-    register(Quest.registry, "quest", id, this);
+    Quest.registry.add(this);
   }
 }

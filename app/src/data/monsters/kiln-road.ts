@@ -1,4 +1,4 @@
-import { Monster } from "../../models/monster";
+import { Monster } from "@/models/monster";
 
 new Monster(
   "kiln-wolf",
@@ -33,14 +33,4 @@ new Monster(
   },
   "Bigger, scarred, and last to run.",
   false
-);
-
-new Monster(
-  "ash-wisp",
-  "Ash wisp",
-  3,
-  "far",
-  { hp: 10, attack: 6, defense: 1, agility: 7 },
-  { xp: 9, drops: [{ item: "ash-glass", chance: 0.5 }] },
-  "A coal that drifts. It burns from where you aren't."
 );

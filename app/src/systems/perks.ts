@@ -1,4 +1,4 @@
-import type { Perk } from "../models/item";
+import type { Perk } from "@/models/item";
 
 const STAT = (k: string) => k.toUpperCase();
 
@@ -10,17 +10,15 @@ export const bonus = (p: Perk, stats: Record<string, number>): number =>
 
 // the rule in words, then what it comes to with these stats
 export const explain = (p: Perk, stats: Record<string, number>): string => {
-  if (p.kind === "scaling") {
-    const rule =
-      p.per >= 1
-        ? `+${p.per} damage for every point of ${STAT(p.stat)} above ${p.from}`
-        : `+1 damage for every ${Math.round(1 / p.per)} ${STAT(p.stat)} above ${
-            p.from
-          }`;
-    return `${rule}. At your ${STAT(p.stat)} ${stats[p.stat] ?? 0}: +${bonus(
-      p,
-      stats
-    )}.`;
-  }
-  return "";
+  if (p.kind !== "scaling") return "";
+  const rule =
+    p.per >= 1
+      ? `+${p.per} damage for every point of ${STAT(p.stat)} above ${p.from}`
+      : `+1 damage for every ${Math.round(1 / p.per)} ${STAT(p.stat)} above ${
+          p.from
+        }`;
+  return `${rule}. At your ${STAT(p.stat)} ${stats[p.stat] ?? 0}: +${bonus(
+    p,
+    stats
+  )}.`;
 };

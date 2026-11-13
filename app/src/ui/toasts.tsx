@@ -1,40 +1,36 @@
 import { useEffect, useRef, useState } from "react";
-import type { GameState } from "../state/types";
-import { xpToNext } from "../systems/progression";
+import type { GameState } from "@/state/types";
+import { xpToNext } from "@/systems/progression";
 import LedgerLine from "./ledgerline";
-import { RANKS } from "../data/world/land";
-import { type Grade } from "../models/item";
+import { RANKS } from "@/data/world/land";
+import { Item, type Grade } from "@/data/items";
 import { graded } from "./grade";
-import { itemByName } from "../systems/inventory";
 
-const CATS = ["equipment", "consumables", "materials", "questItems"] as const;
-
-// a notice: a tag in 《》, a thing (colored by its grade — this is the first anyone sees of it), and the rest
-export interface Notice {
+// A notice: a tag in 《》, a thing (colored by its grade — this is the first anyone sees of it), and the rest.
+interface Notice {
   tag?: string;
   name?: string;
   grade?: Grade;
   body: string;
 }
-
 const parse = (text: string): Notice => {
   const m = /^《([^》]+)》\s*(.*)$/.exec(text);
   return m ? { tag: m[1], body: m[2] } : { body: text };
 };
 
-export function diffToasts(prev: GameState, next: GameState): Notice[] {
+// what changed between two states that the player should be told about
+function diff(prev: GameState, next: GameState): Notice[] {
   const out: Notice[] = [];
-  for (const c of CATS) {
-    const before = new Map((prev.bag[c] ?? []).map((i) => [i.name, i.qty]));
-    for (const it of next.bag[c] ?? []) {
-      const d = it.qty - (before.get(it.name) ?? 0);
-      if (d > 0)
-        out.push({
-          tag: "Acquired",
-          name: it.name,
-          grade: itemByName(it.name)?.grade,
-          body: d > 1 ? `×${d}` : "",
-        });
+  for (const [id, qty] of Object.entries(next.bag.items)) {
+    const d = qty - (prev.bag.items[id] ?? 0);
+    if (d > 0) {
+      const it = Item.get(id);
+      out.push({
+        tag: "Acquired",
+        name: it.name,
+        grade: it.grade,
+        body: d > 1 ? `×${d}` : "",
+      });
     }
   }
   const gold = next.bag.gold - prev.bag.gold;
@@ -44,22 +40,18 @@ export function diffToasts(prev: GameState, next: GameState): Notice[] {
   let xp = next.player.xp - prev.player.xp;
   for (let l = prev.player.level; l < next.player.level; l++) xp += xpToNext(l); // xp spent crossing levels
   if (xp > 0) out.push({ tag: "Growth", body: `+${xp}` });
-  for (const t of (next.notices ?? []).slice((prev.notices ?? []).length))
-    out.push(parse(t)); // what the systems said, via notify()
+  for (const t of next.notices.slice(prev.notices.length)) out.push(parse(t)); // what the systems said
   return out;
 }
 
-interface Toast extends Notice {
-  id: number;
-}
 const SHOW = 4200; // ms on screen — the animation below is timed to it
 
 export function Toasts({ state }: { state: GameState }) {
   const prev = useRef(state);
   const nextId = useRef(0);
-  const [toasts, setToasts] = useState<Toast[]>([]);
+  const [toasts, setToasts] = useState<(Notice & { id: number })[]>([]);
   useEffect(() => {
-    const msgs = diffToasts(prev.current, state);
+    const msgs = diff(prev.current, state);
     prev.current = state;
     for (const n of msgs) {
       const id = nextId.current++;
@@ -74,17 +66,17 @@ export function Toasts({ state }: { state: GameState }) {
     <div
       style={{
         position: "fixed",
-        left: 24,
+        right: 24,
         bottom: 28,
         display: "flex",
         flexDirection: "column",
-        alignItems: "flex-start",
+        alignItems: "flex-end",
         gap: 8,
         pointerEvents: "none",
         zIndex: 50,
       }}
     >
-      <style>{`@keyframes toastIn { from { opacity: 0; transform: translateX(-24px) } 8% { opacity: 1; transform: none } 80% { opacity: 1 } to { opacity: 0 } }`}</style>
+      <style>{`@keyframes toastIn { from { opacity: 0; transform: translateX(24px) } 8% { opacity: 1; transform: none } 80% { opacity: 1 } to { opacity: 0 } }`}</style>
       {toasts.map((t) => (
         <div
           key={t.id}

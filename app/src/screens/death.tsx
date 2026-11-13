@@ -1,7 +1,9 @@
 import { useState } from "react";
-import Passage from "../ui/passage";
-import { SERIF, MenuButton } from "../ui/cards";
-import LedgerLine from "../ui/ledgerline";
+import Passage from "@/ui/passage";
+import MenuButton from "@/ui/menubutton";
+import LedgerLine from "@/ui/ledgerline";
+import { stage } from "@/ui/styles";
+import { FONT_READ } from "@/ui/theme";
 
 const LINES = [
   "The world goes out.",
@@ -14,17 +16,10 @@ export default function Death({ onContinue }: { onContinue: () => void }) {
   return (
     <div
       style={{
+        ...stage,
         position: "fixed",
         inset: 0,
-        background: "#000",
-        color: "rgba(233,236,242,0.92)",
-        font: `400 clamp(16px, 1.8vw, 22px) ${SERIF}`,
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 28,
-        padding: 24,
+        font: FONT_READ,
         zIndex: 60,
       }}
     >

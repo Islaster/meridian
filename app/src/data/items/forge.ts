@@ -9,11 +9,14 @@ import {
   type WeaponType,
   type ArmorGroup,
   type Craft,
-} from "../../models/item";
-import { METALS, type Row } from "../../models/metal";
+} from "@/models/item";
+import { METALS, type Row } from "./metals";
 
-type Stock = "metal" | "wood" | "hide";
-type Part = [Stock | string, number]; // a row's stock, or a fixed material id
+// Standard gear is generated, not written: every row of the metal ladder makes the same
+// set of pieces, each in every grade. The two tables below and the ladder are the only data.
+
+type Stock = "metal" | "wood" | "hide"; // a row's three materials, by role
+type Part = [Stock | string, number]; // a role from the row, or a fixed item id
 
 const WEAPONS: Record<
   string,
@@ -132,15 +135,8 @@ const ARMOR: Record<
   },
 };
 
-const STOCKS: string[] = ["metal", "wood", "hide"];
-const needs = (t: Row, parts: Part[]) =>
-  parts.map(([p, qty]) => ({
-    id: STOCKS.includes(p) ? slug(t[p as Stock]) : Item.get(p).id,
-    qty,
-  }));
-
 // sheet rows
-export const GRADE_MULT: Record<Grade, number> = {
+const GRADE_MULT: Record<Grade, number> = {
   inferiority: 0.8,
   normal: 1,
   rare: 1.2,
@@ -149,89 +145,114 @@ export const GRADE_MULT: Record<Grade, number> = {
   legendary: 2.1,
   phantasm: 2.6,
 };
-const CRAFT_OF: Record<"metal" | "wood" | "hide", Craft> = {
+const CRAFT_OF: Record<Stock, Craft> = {
   metal: "smith",
   wood: "fletch",
   hide: "tailor",
 };
-const STOCK_GROUP = { metal: "ore", wood: "plant", hide: "hide" } as const;
-const OPEN_TIERS = 2;
+const GROUP_OF: Record<Stock, MaterialGroup> = {
+  metal: "ore",
+  wood: "plant",
+  hide: "hide",
+};
+const OPEN_TIERS = 2; // the first ingots anyone can pour; the rest take a smith
 
 const cap = (s: string) => s[0].toUpperCase() + s.slice(1);
 const slug = (s: string) => s.replace(/\s+/g, "-");
-const ensure = (id: string, group: MaterialGroup, price: number) => {
-  if (!Item.registry.has(id))
-    new Material(id, id.replace(/-/g, " "), group, price);
-};
 export const variantId = (base: string, grade: Grade) =>
   grade === "normal" ? base : `${base}-${grade}`;
+const pieceName = (mat: string, kind: string, grade: Grade) =>
+  grade === "normal"
+    ? `${cap(mat)} ${kind}`
+    : `${cap(mat)} ${kind} 《${cap(grade)}》`;
+// a material declared by hand (materials.ts) keeps its own name and price
+const declare = (
+  id: string,
+  label: string,
+  group: MaterialGroup,
+  price: number
+) => {
+  if (!Item.registry.has(id)) new Material(id, label, group, price);
+};
+// a part list against the row: "metal" → this tier's metal, "charcoal" → charcoal
+const needs = (row: Row, parts: Part[]) =>
+  parts.map(([p, qty]) => ({
+    id: p in CRAFT_OF ? slug(row[p as Stock]) : Item.get(p).id,
+    qty,
+  }));
 
-for (let tier = 0; tier < METALS.length; tier++) {
-  const t = METALS[tier];
-  const row: Row = t;
-
-  // mined rows get an ore; alloys are made from the row below, found metals are found
-  const stock = slug(t.metal),
+// ── a row's materials: the ore (if mined), the ingot and how it's poured, the wood and the hide ──
+function materials(row: Row, tier: number) {
+  const stock = slug(row.metal),
     ore = `${stock}-ore`;
-  if (!row.found && !row.from && !Item.registry.has(ore))
-    new Material(ore, `${cap(t.metal)} ore`, "ore", Math.round(8 * t.price));
-  if (!Item.registry.has(stock))
-    new Material(stock, cap(t.metal), "ore", Math.round(20 * t.price));
+  if (!row.found && !row.from)
+    declare(ore, `${cap(row.metal)} ore`, "ore", Math.round(8 * row.price)); // mined
+  declare(stock, cap(row.metal), "ore", Math.round(20 * row.price));
   if (!row.found) {
-    const inputs = (row.from ?? [[ore, 2]]).map(([id, qty]) => ({ id, qty }));
+    const inputs = (row.from ?? [[ore, 2]]).map(([id, qty]) => ({ id, qty })); // an alloy names its own inputs
     for (const m of inputs)
-      ensure(m.id, m.id === "charcoal" ? "fuel" : "ore", row.price);
+      declare(
+        m.id,
+        m.id.replace(/-/g, " "),
+        m.id === "charcoal" ? "fuel" : "ore",
+        row.price
+      );
     Item.get(stock).made(
       "smith",
       [...inputs, { id: "charcoal", qty: 1 }],
-      METALS.indexOf(t) < OPEN_TIERS
+      tier < OPEN_TIERS
     );
   }
-  for (const of of ["wood", "hide"] as const) {
-    const id = slug(t[of]);
-    if (!Item.registry.has(id))
-      new Material(id, cap(t[of]), STOCK_GROUP[of], Math.round(20 * t.price));
-  }
+  for (const of of ["wood", "hide"] as const)
+    declare(
+      slug(row[of]),
+      cap(row[of]),
+      GROUP_OF[of],
+      Math.round(20 * row.price)
+    );
+}
 
+// ── a row's pieces, in every grade ────────────────────────────────────────
+function pieces(row: Row) {
   for (const [kind, w] of Object.entries(WEAPONS)) {
-    const mat = t[w.of],
-      base = `${slug(mat)}-${kind}`;
-    for (const grade of GRADES) {
-      const m = GRADE_MULT[grade];
+    const mat = row[w.of];
+    for (const grade of GRADES)
       new Weapon(
-        variantId(base, grade),
-        grade === "normal"
-          ? `${cap(mat)} ${kind}`
-          : `${cap(mat)} ${kind} 《${cap(grade)}》`,
+        variantId(`${slug(mat)}-${kind}`, grade),
+        pieceName(mat, kind, grade),
         w.type,
-        Math.round(w.dmg * t.power * m),
-        { reqLevel: t.level, price: Math.round(w.price * t.price * m), grade }
-      ).made(CRAFT_OF[w.of], needs(t, w.parts));
-    }
+        Math.round(w.dmg * row.power * GRADE_MULT[grade]),
+        {
+          reqLevel: row.level,
+          price: Math.round(w.price * row.price * GRADE_MULT[grade]),
+          grade,
+        }
+      ).made(CRAFT_OF[w.of], needs(row, w.parts));
   }
   for (const [kind, a] of Object.entries(ARMOR)) {
-    const mat = t[a.of],
-      base = `${slug(mat)}-${kind}`;
-    for (const grade of GRADES) {
-      const m = GRADE_MULT[grade];
+    const mat = row[a.of];
+    for (const grade of GRADES)
       new Armor(
-        variantId(base, grade),
-        grade === "normal"
-          ? `${cap(mat)} ${kind}`
-          : `${cap(mat)} ${kind} 《${cap(grade)}》`,
+        variantId(`${slug(mat)}-${kind}`, grade),
+        pieceName(mat, kind, grade),
         a.group,
-        Math.round(a.def * t.power * m),
-        { reqLevel: t.level, price: Math.round(a.price * t.price * m), grade }
-      ).made(CRAFT_OF[a.of], needs(t, a.parts));
-    }
+        Math.round(a.def * row.power * GRADE_MULT[grade]),
+        {
+          reqLevel: row.level,
+          price: Math.round(a.price * row.price * GRADE_MULT[grade]),
+          grade,
+        }
+      ).made(CRAFT_OF[a.of], needs(row, a.parts));
   }
 }
 
+METALS.forEach((row, tier) => {
+  materials(row, tier);
+  pieces(row);
+});
+
 // the window's shelf for a tier — the normal pieces, ids unchanged
 export const shelf = (tier: number) =>
-  [...Object.keys(WEAPONS), ...Object.keys(ARMOR)].map((kind) => {
-    const of = kind in WEAPONS ? WEAPONS[kind].of : ARMOR[kind].of;
-    return `${slug(METALS[tier][of])}-${kind}`;
-  });
-
-if (import.meta.hot) import.meta.hot.accept();
+  [...Object.entries(WEAPONS), ...Object.entries(ARMOR)].map(
+    ([kind, p]) => `${slug(METALS[tier][p.of])}-${kind}`
+  );

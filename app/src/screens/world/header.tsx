@@ -1,9 +1,10 @@
-import type { Town } from "./usetown";
-import { xpToNext } from "../../systems/progression";
-import { clock } from "../../systems/time";
+import type { GameState } from "@/state/types";
+import { xpToNext } from "@/systems/progression";
+import { clock } from "@/systems/time";
+import { FILL_OFF } from "@/ui/theme";
 
-export default function Header({ t }: { t: Town }) {
-  const { player: p, time } = t.state;
+export default function Header({ state }: { state: GameState }) {
+  const { player: p, time } = state;
   const pct = Math.min(100, (p.xp / xpToNext(p.level)) * 100);
   return (
     <>
@@ -25,7 +26,7 @@ export default function Header({ t }: { t: Town }) {
           <span>{p.name}</span>
           <span style={{ opacity: 0.6 }}>Level {p.level}</span>
         </div>
-        <div style={{ height: 2, background: "rgba(233,236,242,0.12)" }}>
+        <div style={{ height: 2, background: FILL_OFF }}>
           <div
             style={{
               height: "100%",

@@ -1,37 +1,33 @@
-import type { Town } from "./usetown";
-import { ptr } from "../../ui/styles";
-import { allowed } from "../../systems/tutorial";
+import type { World } from "./useworld";
+import { link } from "@/ui/styles";
+import { allowed } from "@/systems/tutorial";
 
-export default function Footer({ t }: { t: Town }) {
-  const { state } = t;
-  const link = { cursor: "pointer", marginLeft: 16 };
-  const restOk = allowed(state, { kind: "rest" });
-  const waitOk = allowed(state, { kind: "wait" });
+// The clock's two verbs and the menu, as words under the scene.
+export default function Footer({ w }: { w: World }) {
+  const { state, loc } = w;
+  const verb = (ok: boolean, tut: string, text: string, go: () => void) => (
+    <span
+      data-tut={tut}
+      style={{ ...link, opacity: ok ? 0.7 : 0.3 }}
+      onClick={() => ok && go()}
+    >
+      [ {text} ]
+    </span>
+  );
   return (
-    <>
-      <button
-        style={{ ...ptr, opacity: waitOk ? 1 : 0.4 }}
-        disabled={!waitOk}
-        onClick={t.wait}
-      >
-        Wait an hour
-      </button>
-      {t.loc.canRest && (
-        <button
-          style={{ ...ptr, opacity: restOk ? 1 : 0.4 }}
-          disabled={!restOk}
-          onClick={t.rest}
-          data-tut="rest"
-        >
-          Sleep until morning
-        </button>
-      )}
-      <div style={{ opacity: 0.45 }} data-tut="key">
+    <div style={{ display: "flex", gap: 18, flexWrap: "wrap" }}>
+      {verb(allowed(state, { kind: "wait" }), "wait", "wait an hour", w.wait)}
+      {loc.canRest &&
+        verb(
+          allowed(state, { kind: "rest" }),
+          "rest",
+          "sleep until morning",
+          w.rest
+        )}
+      {verb(true, "menu", "menu", () => w.play.setMenu("inventory"))}
+      <span style={{ opacity: 0.4, marginLeft: "auto" }} data-tut="key">
         ✦ main · ◇ side · ⚔ bounty · ⚑ mission
-      </div>
-      <span style={link} data-tut="menu" onClick={() => t.setMenu("inventory")}>
-        [ menu ]
       </span>
-    </>
+    </div>
   );
 }

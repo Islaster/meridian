@@ -2,6 +2,7 @@ import { Item, Consumable, isGear, type Kind } from "@/data/items";
 import { Npc, type Loadout } from "@/data/world/locations";
 import type { Bag, Equipment, GameState, Player } from "@/state/types";
 import { notify } from "./notices";
+import { effective } from "./conditions";
 import { add } from "@/lib/flags";
 
 // ── the bag: item id → count ──────────────────────────────────────────────
@@ -54,7 +55,7 @@ export const wearable = (p: Player, id: string) => {
   return (
     isGear(it) &&
     p.level >= it.reqLevel &&
-    Object.entries(it.reqStats).every(([k, n]) => (p.stats[k] ?? 0) >= n)
+    Object.entries(it.reqStats).every(([k, n]) => (effective(p)[k] ?? 0) >= n)
   );
 };
 

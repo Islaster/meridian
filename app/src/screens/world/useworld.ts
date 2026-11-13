@@ -10,7 +10,7 @@ import { Dungeon } from "@/data/world/land";
 import { advance, timeNote } from "@/systems/time";
 import { progress, dispense, offer, accept } from "@/systems/quests";
 import { signals } from "@/systems/signals";
-import { perform } from "@/systems/actions";
+import { perform, available } from "@/systems/actions";
 import { lend } from "@/systems/inventory";
 import { present, roaming } from "@/systems/presence";
 import { enter } from "@/systems/dungeon";
@@ -112,15 +112,17 @@ export function useWorld() {
     setLine(r.say);
     if (r.next) land(state, progress(r.next, null));
   };
-  // a box in the layout: a way out walks, a person talks, the rest opens under the layout
+  // a box in the layout: a way out walks, a person talks, the rest opens under the layout.
+  // A pointer may be the place's own, one a quest placed here, or today's gather spot — all of
+  // them come through `available`, the same list the layout drew.
   const pick = (id: string) => {
     if (loc.exits.some((e) => e.to === id)) return go(id);
     if (focus === id) return setFocus(null);
     if (id === "board") return openBoard();
     if (id === "shop" || id === "bench") return setFocus(id);
-    const a = loc.actions.find((x) => x.id === id);
+    const a = available(loc, state).find((x) => x.id === id);
     if (a) return act(a);
-    talk(id);
+    if (Npc.registry.has(id)) talk(id);
   };
   const pickPosting = (id: string) => land(state, accept(offer(state, id), id));
 

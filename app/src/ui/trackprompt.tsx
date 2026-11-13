@@ -38,7 +38,7 @@ export default function TrackPrompt() {
     <div
       style={{
         position: "fixed",
-        right: 24,
+        left: 24,
         top: 24,
         display: "flex",
         gap: 14,

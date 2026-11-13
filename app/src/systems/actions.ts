@@ -8,38 +8,34 @@ import { progress } from "./quests";
 import { advance } from "./time";
 import { add } from "@/lib/flags";
 
-// Pointers declared by quests and npcs, indexed by the place they stand in.
-// Built once, on first use; rebuilt if the registries grow (hot reload).
+// Pointers declared by quests, indexed by the place they stand in.
+// Built once, on first use; rebuilt if the registry grows (hot reload).
 let index: { size: number; byPlace: Map<string, Placed[]> } | null = null;
 const placed = () => {
-  const size = Quest.registry.size + Npc.registry.size;
-  if (index?.size !== size) {
+  if (index?.size !== Quest.registry.size) {
     const byPlace = new Map<string, Placed[]>();
-    const all = [
-      ...Quest.all().flatMap((q) => q.actions),
-      ...Npc.all().flatMap((n) => n.actions),
-    ];
-    for (const a of all)
+    for (const a of Quest.all().flatMap((q) => q.actions))
       (byPlace.get(a.at) ?? byPlace.set(a.at, []).get(a.at)!).push(a);
-    index = { size, byPlace };
+    index = { size: Quest.registry.size, byPlace };
   }
   return index.byPlace;
 };
 
-// every pointer in a scene: the place's own, the placed ones, today's gather spots
-const actionsAt = (loc: Location, s: GameState): Action[] => [
-  ...loc.actions,
-  ...(placed().get(loc.id) ?? []),
-  ...spotActions(loc.id, s),
-];
-// the ones that show: their quest is taken (if they have one), not already done, and open
-export const available = (loc: Location, s: GameState) =>
-  actionsAt(loc, s).filter(
-    (a) =>
-      (!a.quest || s.quests[a.quest]?.status === "taken") &&
-      !s.done.includes(`act:${a.id}`) &&
-      meets(s, a.requires)
-  );
+// a pointer shows when its quest is taken (if it has one), it isn't done, and its terms are met
+const open = (a: Action, s: GameState) =>
+  (!a.quest || s.quests[a.quest]?.status === "taken") &&
+  !s.done.includes(`act:${a.id}`) &&
+  meets(s, a.requires);
+// what's in a scene to act on: the place's own pointers, what quests placed here, today's spots
+export const available = (loc: Location, s: GameState): Action[] =>
+  [
+    ...loc.actions,
+    ...(placed().get(loc.id) ?? []),
+    ...spotActions(loc.id, s),
+  ].filter((a) => open(a, s));
+// what someone will talk about here: their pointers, posted in this scene, that are open
+export const topics = (n: Npc, loc: Location, s: GameState): Action[] =>
+  n.actions.filter((a) => a.at === loc.id && open(a, s));
 
 // where a pointer stands today — for the ✦
 export const placeOf = (s: GameState, id: string): string | undefined => {
@@ -49,6 +45,8 @@ export const placeOf = (s: GameState, id: string): string | undefined => {
   if (sp) return dealt(s, sp);
   for (const [at, list] of placed())
     if (list.some((a) => a.id === id)) return at;
+  for (const n of Npc.all())
+    for (const a of n.actions) if (a.id === id) return a.at;
   return Location.find((l) => l.actions.some((a) => a.id === id))?.id;
 };
 

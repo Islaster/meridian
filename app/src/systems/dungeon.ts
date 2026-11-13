@@ -1,6 +1,7 @@
 import { Dungeon, RANKS, type Room } from "@/data/world/land";
 import { Monster } from "@/data/monsters";
 import { City } from "@/data/world/cities";
+import { effective } from "./conditions";
 import { Npc } from "@/data/world/locations";
 import type { GameState } from "@/state/types";
 import { giveItem } from "./inventory";
@@ -112,7 +113,7 @@ export function step(
   const notes: Note[] = [];
   if (room.type === "trap" && room.trap && !roomDone(state, d, room, "trap")) {
     const t = room.trap,
-      ok = (state.player.stats[t.stat] ?? 0) >= t.dc;
+      ok = (effective(state.player)[t.stat] ?? 0) >= t.dc;
     notes.push({ kind: "story", text: ok ? t.pass : t.fail });
     state = {
       ...state,

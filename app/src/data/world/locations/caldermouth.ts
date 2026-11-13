@@ -4,6 +4,7 @@ import { LIEN } from "@/data/money/lien";
 import { shelf } from "@/data/items/forge";
 import { roaming } from "@/systems/presence";
 import { oaths, practice } from "@/systems/classes";
+import { effective } from "@/systems/conditions";
 
 //NPC
 new Npc(
@@ -304,7 +305,7 @@ new Location(
       onLocked: (s) => {
         const n = (s.counters["nag:board"] ?? 0) + 1;
         const next = { ...s, counters: { ...s.counters, "nag:board": n } };
-        const { lck, cha } = s.player.stats;
+        const { lck, cha } = effective(s.player);
         if (n >= 5 && lck >= 10 && cha >= 15)
           return {
             say: "Fine. You've worn me down, and you've the face for it. Card's yours — don't tell Tamsin I did that.",

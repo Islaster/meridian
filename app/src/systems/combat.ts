@@ -1,6 +1,7 @@
 import { Weapon, Armor, Item } from "@/data/items";
 import { Monster } from "@/data/monsters";
 import type { Player } from "@/state/types";
+import { effective } from "./conditions";
 import { bonus } from "./perks";
 
 export const strBonus = (stats: Record<string, number>) =>
@@ -11,8 +12,9 @@ export const weaponDamage = (w: Weapon, stats: Record<string, number>) =>
 
 export function playerAttack(p: Player): number {
   const w = p.equipment.weapon ? Item.get(p.equipment.weapon) : undefined;
-  const base = w instanceof Weapon ? weaponDamage(w, p.stats) : 1;
-  return base + strBonus(p.stats);
+  const stats = effective(p);
+  const base = w instanceof Weapon ? weaponDamage(w, stats) : 1;
+  return base + strBonus(stats);
 }
 
 export const playerDefense = (p: Player) =>

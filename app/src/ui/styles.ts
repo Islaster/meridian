@@ -148,10 +148,37 @@ export const greyed = (why: string | null | boolean): CSSProperties => ({
   opacity: why ? 0.4 : 1,
 });
 
-// what opens under the layout when you pick something in it: a counter, the board, a bench, an offer
+// a person: the one solid thing on the page — a filled name you can pick, ringed while you're talking to them
+export const pill = (on: boolean, ok = true): CSSProperties => ({
+  display: "inline-flex",
+  alignItems: "center",
+  padding: "5px 12px 5px 10px",
+  border: `1px solid ${INK}`,
+  borderRadius: 999,
+  background: INK,
+  color: BLACK,
+  boxShadow: on ? `0 0 0 2px ${BLACK}, 0 0 0 3px ${INK}` : "none",
+  opacity: ok ? 1 : 0.4,
+  cursor: ok ? "pointer" : "default",
+  fontSize: "0.9em",
+});
+// the dock: what you're doing, pinned to the bottom of the view so it never needs a scroll —
+// a conversation, the counter, the board, the bench
+export const dock: CSSProperties = {
+  position: "sticky",
+  bottom: 0,
+  zIndex: 30,
+  background: BLACK,
+  borderTop: `1px solid ${LINE}`,
+  padding: "14px 0 12px",
+  maxHeight: "48vh",
+  overflowY: "auto",
+  display: "flex",
+  flexDirection: "column",
+  gap: 14,
+};
+// a panel inside the dock
 export const sheet: CSSProperties = {
-  border: `1px solid ${LINE}`,
-  padding: "16px 20px",
   display: "flex",
   flexDirection: "column",
   gap: 14,

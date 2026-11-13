@@ -45,6 +45,7 @@ const Bar = ({
                 ? POOL
                 : FILL
               : FILL_OFF,
+          transition: "background 350ms ease",
         }}
       />
     ))}
@@ -105,6 +106,31 @@ export default function Battle({
     }
   }, [f]); // eslint-disable-line react-hooks/exhaustive-deps -- every turn is a new value; the beat re-arms on each
 
+  // what landed on a fighter this turn — the box shakes, the number floats off it
+  const blow = (i: number) => f.blows.find((b) => b.who === i);
+  const struck = (i: number) =>
+    blow(i) ? { animation: "shake 320ms ease" } : {};
+  // the number that floats off a struck box
+  const mark = (i: number) => {
+    const b = blow(i);
+    return b ? (
+      <span
+        key={f.turn}
+        style={{
+          position: "absolute",
+          right: 10,
+          top: -6,
+          fontSize: "1.3em",
+          letterSpacing: "0.04em",
+          pointerEvents: "none",
+          animation: "blow 900ms ease-out forwards",
+        }}
+      >
+        {b.amount < 0 ? `+${-b.amount}` : `−${b.amount}`}
+      </span>
+    ) : null;
+  };
+
   const supplies = carried(state.bag)
     .filter(
       ({ item, qty }) =>
@@ -115,6 +141,10 @@ export default function Battle({
 
   return (
     <div style={{ ...wrap, maxWidth: 760, font: FONT_PANEL, gap: 22 }}>
+      <style>{`
+        @keyframes shake { 0%,100% { transform: none } 20% { transform: translateX(-5px) } 40% { transform: translateX(4px) } 60% { transform: translateX(-3px) } 80% { transform: translateX(2px) } }
+        @keyframes blow { from { opacity: 1; transform: translateY(0) } to { opacity: 0; transform: translateY(-28px) } }
+      `}</style>
       <div
         style={{
           display: "flex",
@@ -131,11 +161,14 @@ export default function Battle({
                 onClick={() => setF(retarget(f, i))}
                 style={{
                   ...box,
+                  position: "relative",
                   opacity: alive(x) ? 1 : 0.3,
                   borderColor: i === f.target && alive(x) ? FOCUS : LINE,
                   cursor: "pointer",
+                  ...struck(i),
                 }}
               >
+                {mark(i)}
                 <div
                   style={{
                     display: "flex",
@@ -152,7 +185,15 @@ export default function Battle({
             )
         )}
       </div>
-      <div style={{ ...box, alignSelf: "flex-start" }}>
+      <div
+        style={{
+          ...box,
+          position: "relative",
+          alignSelf: "flex-start",
+          ...struck(0),
+        }}
+      >
+        {mark(0)}
         <div
           style={{ display: "flex", justifyContent: "space-between", gap: 12 }}
         >

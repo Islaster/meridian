@@ -3,6 +3,7 @@ import { Weapon, Armor, Item, isGear } from "@/data/items";
 import { equip, unequip, wornIn, wornFor, wearable } from "@/systems/inventory";
 import { weaponDamage, strBonus } from "@/systems/combat";
 import { explain } from "@/systems/perks";
+import { effective } from "@/systems/conditions";
 import { label, para, ptr, rail } from "@/ui/styles";
 import { GRADE_NAME, graded } from "@/ui/grade";
 
@@ -18,6 +19,7 @@ export default function GearDetail({
 }) {
   const { state, update } = useGame();
   const p = state.player;
+  const stats = effective(p); // as they stand, conditions counted
   const def = Item.get(id);
   if (!isGear(def)) return null;
 
@@ -26,7 +28,7 @@ export default function GearDetail({
   const other = otherId && otherId !== id ? Item.get(otherId) : undefined;
   const power = (it: Item | undefined) =>
     it instanceof Weapon
-      ? weaponDamage(it, p.stats)
+      ? weaponDamage(it, stats)
       : it instanceof Armor
       ? it.defense
       : 0;
@@ -77,8 +79,8 @@ export default function GearDetail({
               )}
             </div>
             <div style={{ opacity: 0.7 }}>
-              Your attack: {now + strBonus(p.stats)} ({now} +{" "}
-              {strBonus(p.stats)} from STR {p.stats.str ?? 5})
+              Your attack: {now + strBonus(stats)} ({now} + {strBonus(stats)}{" "}
+              from STR {stats.str ?? 5})
             </div>
           </>
         ) : (
@@ -91,7 +93,7 @@ export default function GearDetail({
           <div style={label}>Perks</div>
           {def.perks.map((pk, i) => (
             <div key={i} style={{ opacity: 0.85 }}>
-              {explain(pk, p.stats)}
+              {explain(pk, stats)}
             </div>
           ))}
         </div>
@@ -106,7 +108,7 @@ export default function GearDetail({
               ...Object.entries(def.reqStats).map(
                 ([k, n]) =>
                   `${k.toUpperCase()} ${n}${
-                    (p.stats[k] ?? 0) < n ? ` (you: ${p.stats[k] ?? 0})` : ""
+                    (stats[k] ?? 0) < n ? ` (you: ${stats[k] ?? 0})` : ""
                   }`
               ),
             ]

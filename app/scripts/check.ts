@@ -82,7 +82,6 @@ for (const l of Location.all()) {
   if (!l.plan) continue;
   const mine = new Set([
     ...l.exits.map((e) => e.to),
-    ...l.npcs,
     ...l.actions.map((a) => a.id),
     ...(l.shop ? ["shop"] : []),
     ...(l.board ? ["board"] : []),

@@ -1,12 +1,17 @@
 import type { World } from "./useworld";
+import QuestOffer from "@/screens/menu/questoffers";
 import Coachmark from "@/ui/coachmark";
 import { para, ptr, dialog } from "@/ui/styles";
 
-// What floats over the scene: a confirm, and the tutorial's spotlight.
+// What floats over the scene: an offer, a confirm, and the tutorial's spotlight.
 export default function Overlays({ w }: { w: World }) {
-  const { confirm, setConfirm, tutorial } = w;
+  const { prompt, setPrompt, confirm, setConfirm, tutorial } = w;
+  const done = w.play.notes.some((n) => n.kind === "complete");
   return (
     <>
+      {prompt && !done && (
+        <QuestOffer id={prompt} onClose={() => setPrompt(null)} />
+      )}
       {confirm && (
         <div style={{ ...dialog, background: "rgba(0,0,0,0.92)" }}>
           <div

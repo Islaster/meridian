@@ -67,7 +67,7 @@ export function Toasts({ state }: { state: GameState }) {
       style={{
         position: "fixed",
         right: 24,
-        bottom: 28,
+        top: 24, // the top: the stage owns the bottom of the screen
         display: "flex",
         flexDirection: "column",
         alignItems: "flex-end",

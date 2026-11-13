@@ -16,6 +16,7 @@ export const basePlayer: Player = {
   rank: 0,
   equipment: {},
   proficiency: {},
+  conditions: [],
 };
 
 export const newGame: GameState = {

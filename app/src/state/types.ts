@@ -1,4 +1,5 @@
 import type { Slot } from "@/models/item";
+import type { Active } from "@/models/condition";
 
 export type Weekday =
   | "monday"
@@ -40,7 +41,7 @@ export interface Player {
   rank: number; // license rank — index into RANKS
   class?: string; // the name on top of the Ledger
   equipment: Equipment;
-  weary?: { stat: string; amount: number }; // last night's debt — restored at the next proper sleep
+  conditions: Active[]; // what's on you — weary, later buffs; see data/conditions.ts
   proficiency: Record<string, number>; // by medium — sword, bow, tide, ember, smith, alchemy, gather:ore…
 }
 

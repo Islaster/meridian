@@ -10,12 +10,14 @@ import { canCraft } from "@/systems/craft";
 import { available } from "@/systems/actions";
 import { dur } from "@/systems/time";
 import PlanView, { type Cell } from "@/ui/plan";
-import { label, hollow, faint } from "@/ui/styles";
+import Figure from "@/ui/figure";
+import { label, hollow, faint, pill, dim } from "@/ui/styles";
 import { useNarrow } from "@/ui/usenarrow";
 
-// The place you're in, drawn: what's here as boxes, and the ways out of it as boxes
-// marked OUT. The layout is navigation and nothing else — pick something that's here and
-// it opens under the layout; pick a way out and the layout becomes the next place.
+// The place you're in, drawn. Boxes are places: the fixtures here (the counter, the board,
+// the bench, the place's own pointers) and the ways out, marked OUT. People are never boxes —
+// they stand in a row above the plan, each with the figure. Pick a person or a fixture and it
+// opens on the stage; pick a way out and the layout becomes the next place.
 // A place lays itself out unless its file draws a plan by hand.
 
 const W = 2.5,
@@ -61,7 +63,6 @@ export default function Layout({ w }: { w: World }) {
   const people = present(state, loc);
   const actions = available(loc, state);
   const here = [
-    ...people,
     ...(loc.shop ? ["shop"] : []),
     ...(loc.board ? ["board"] : []),
     ...(loc.bench ? ["bench"] : []),
@@ -76,22 +77,6 @@ export default function Layout({ w }: { w: World }) {
     : auto(here, ways, cols);
 
   const cells: Record<string, Cell> = {};
-  for (const id of people) {
-    const ok = allowed(state, { kind: "npc", id });
-    cells[id] = {
-      title: (
-        <>
-          {Npc.get(id).name}
-          {sig.available.has(id) && " ?"}
-          {sig.pending.has(id) && <span style={hollow}> ?</span>}
-          {marks(sig.npcs[id])}
-        </>
-      ),
-      here: focus === id,
-      dim: !ok,
-      can: ok,
-    };
-  }
   if (loc.shop) {
     const ok = allowed(state, { kind: "shop" });
     cells.shop = {
@@ -157,6 +142,7 @@ export default function Layout({ w }: { w: World }) {
         !dungeon && !e.hours
           ? present(state, Location.get(e.to)).map((p) => (
               <span key={p} style={faint}>
+                <Figure size={10} />
                 {Npc.get(p).name}
               </span>
             ))
@@ -174,7 +160,36 @@ export default function Layout({ w }: { w: World }) {
       style={{ display: "flex", flexDirection: "column", gap: 6 }}
     >
       <div style={label}>{loc.name}</div>
-      <PlanView plan={plan} cells={cells} onPick={w.pick} />
+      <PlanView
+        plan={plan}
+        cells={cells}
+        onPick={w.pick}
+        head={
+          people.length ? (
+            people.map((id) => {
+              const ok = allowed(state, { kind: "npc", id });
+              return (
+                <span
+                  key={id}
+                  style={pill(focus === id, ok)}
+                  onClick={() => ok && w.pick(id)}
+                >
+                  <Figure />
+                  {Npc.get(id).name}
+                  {sig.available.has(id) && " ?"}
+                  {sig.pending.has(id) && <span style={hollow}> ?</span>}
+                  {marks(sig.npcs[id])}
+                </span>
+              );
+            })
+          ) : (
+            <span style={{ ...dim, fontSize: "0.85em" }}>
+              <Figure />
+              no one here now
+            </span>
+          )
+        }
+      />
     </div>
   );
 }

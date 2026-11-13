@@ -2,6 +2,7 @@ import type { GameState } from "@/state/types";
 import type { Note } from "./narrate";
 import { sleep, WEARY, DAY_START } from "./time";
 import { refresh } from "./combat";
+import { afflict, relieve } from "./conditions";
 
 export type Bed = "bed" | "camp" | "rough";
 
@@ -16,15 +17,7 @@ export const night = (
     bed === "rough"
       ? s.player
       : { ...s.player, hp: s.player.maxHp, mp: s.player.maxMp };
-  // yesterday's weariness lifts
-  if (player.weary) {
-    const { stat, amount } = player.weary;
-    player = {
-      ...player,
-      stats: { ...player.stats, [stat]: player.stats[stat] + amount },
-      weary: undefined,
-    };
-  }
+  player = relieve(player, "weary"); // yesterday's weariness lifts
   const notes: Note[] = [];
   if (bed === "rough")
     notes.push({
@@ -41,11 +34,7 @@ export const night = (
       (a, b) => b[1] - a[1]
     )[0];
     const amount = Math.max(1, Math.round(value * WEARY));
-    player = {
-      ...player,
-      stats: { ...player.stats, [stat]: value - amount },
-      weary: { stat, amount },
-    };
+    player = afflict(player, { id: "weary", stat, amount });
     notes.push({
       kind: "story",
       text: `${

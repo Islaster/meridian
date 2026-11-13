@@ -4,7 +4,9 @@ import { PlayerClass } from "@/data/classes";
 import { held } from "@/systems/classes";
 import { unequip } from "@/systems/inventory";
 import { xpToNext } from "@/systems/progression";
-import { row, small, label } from "@/ui/styles";
+import { effective, modifiers } from "@/systems/conditions";
+import { Condition } from "@/data/conditions";
+import { row, small, label, entry } from "@/ui/styles";
 import { graded } from "@/ui/grade";
 import type { Equipment } from "@/state/types";
 
@@ -35,6 +37,8 @@ const SLOT_NAME: Record<keyof Equipment, string> = {
 export default function Sheet() {
   const { state, update } = useGame();
   const p = state.player;
+  const now = effective(p),
+    mod = modifiers(p);
   const addStat = (k: string) =>
     update({
       ...state,
@@ -98,17 +102,21 @@ export default function Sheet() {
               Stats{p.statPoints > 0 && ` · ${p.statPoints} to spend`}
             </span>
           </div>
-          {p.weary && (
-            <div style={{ opacity: 0.6, fontSize: "0.9em" }}>
-              weary · {p.weary.stat.toUpperCase()} −{p.weary.amount} until you
-              sleep properly
-            </div>
-          )}
           {Object.entries(p.stats).map(([k, v]) => (
             <div key={k} style={row}>
               <span style={{ letterSpacing: "0.15em" }}>{k.toUpperCase()}</span>
               <span>
-                {v}
+                {now[k]}
+                {mod[k] ? (
+                  <span
+                    style={{ opacity: 0.6 }}
+                    title={`${v} before conditions`}
+                  >
+                    {" "}
+                    ({mod[k] > 0 ? "+" : "−"}
+                    {Math.abs(mod[k])})
+                  </span>
+                ) : null}
                 {p.statPoints > 0 && (
                   <button
                     style={{ ...small, marginLeft: 12 }}
@@ -120,6 +128,42 @@ export default function Sheet() {
               </span>
             </div>
           ))}
+          <div style={{ ...label, marginTop: 18 }}>Conditions</div>
+          {p.conditions.length === 0 && (
+            <div style={{ opacity: 0.4, fontSize: "0.9em" }}>none</div>
+          )}
+          {p.conditions.map((a) => {
+            const c = Condition.get(a.id);
+            const change = Object.entries(c.stats(a))
+              .map(
+                ([k, n]) =>
+                  `${k.toUpperCase()} ${n > 0 ? "+" : "−"}${Math.abs(n)}`
+              )
+              .join(" · ");
+            return (
+              <div key={a.id} style={entry}>
+                <span>
+                  {c.name}
+                  <span
+                    style={{
+                      opacity: 0.5,
+                      fontSize: "0.8em",
+                      letterSpacing: "0.1em",
+                      marginLeft: 8,
+                    }}
+                  >
+                    {c.kind.toUpperCase()}
+                  </span>
+                </span>
+                <span style={{ opacity: 0.75, fontSize: "0.9em" }}>
+                  {c.describe}
+                </span>
+                <span style={{ opacity: 0.5, fontSize: "0.85em" }}>
+                  on you now: {change || "—"} · {c.ends}
+                </span>
+              </div>
+            );
+          })}
         </div>
         <div style={{ flex: 1, minWidth: 320 }}>
           <div style={label}>Equipped</div>

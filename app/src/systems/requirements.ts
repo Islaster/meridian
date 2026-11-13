@@ -4,6 +4,7 @@ import { Item } from "@/data/items";
 import { RANKS } from "@/data/world/land";
 import { hasItem } from "./inventory";
 import { canCraft } from "./craft";
+import { effective } from "./conditions";
 import type { GameState } from "@/state/types";
 
 // The first unmet requirement, as a readable line; null when everything holds.
@@ -28,8 +29,9 @@ export function unmet(s: GameState, r?: Requirement): string | null {
   if (r.level && s.player.level < r.level) return `Needs level ${r.level}.`;
   if (r.proved && !s.done.includes(`proved:${r.proved}`))
     return `Prove yourself to ${Npc.get(r.proved).name} first.`;
+  const stats = effective(s.player);
   for (const [k, n] of Object.entries(r.stats ?? {}))
-    if ((s.player.stats[k] ?? 0) < n) return `Needs ${k.toUpperCase()} ${n}.`;
+    if ((stats[k] ?? 0) < n) return `Needs ${k.toUpperCase()} ${n}.`;
   for (const [k, n] of Object.entries(r.counters ?? {}))
     if ((s.counters[k] ?? 0) < n) return "Not yet.";
   if (r.craft && !canCraft(s, r.craft)) return `Needs a ${r.craft}'s eye.`;

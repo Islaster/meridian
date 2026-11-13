@@ -2,6 +2,7 @@ import { Monster } from "@/data/monsters";
 import { Consumable, Throwable, Item } from "@/data/items";
 import type { Player } from "@/state/types";
 import { playerAttack, playerDefense, hit } from "./combat";
+import { effective } from "./conditions";
 
 // A fight, as a value. The screen holds one and renders it; every turn is a function
 // from one Fight to the next, so the rules live here and nothing in the screen decides.
@@ -19,11 +20,18 @@ export interface Fighter {
   fleeable: boolean;
 }
 export type Phase = "player" | "enemy" | "over";
+// a blow landed this turn: on whom, and for how much (negative = healed)
+export interface Blow {
+  who: number;
+  amount: number;
+}
 export interface Fight {
   fighters: Fighter[]; // the player first
   actor: number;
   target: number;
   phase: Phase;
+  turn: number; // counts up on every turn taken — the screen keys its animations on it
+  blows: Blow[]; // what landed this turn
   log: string[];
   itemUsed: boolean; // one item per turn
   used: Record<string, number>; // consumables spent, by id — taken from the bag when it's over
@@ -61,7 +69,7 @@ export function open(p: Player, monsters: string[]): Fight {
     maxHp: p.maxHp,
     attack: playerAttack(p),
     defense: playerDefense(p),
-    agility: p.stats.agi ?? 5,
+    agility: effective(p).agi ?? 5,
     ready: 0,
     enemy: false,
     fleeable: true,
@@ -87,6 +95,8 @@ export function open(p: Player, monsters: string[]): Fight {
     actor: 0,
     target: 1,
     phase: "player",
+    turn: 0,
+    blows: [],
     log: [],
     itemUsed: false,
     used: {},
@@ -112,10 +122,18 @@ function tick(f: Fight): Fight {
   return { ...out, target, phase: "player", itemUsed: false };
 }
 
+// a turn begins: it's a new turn, nothing has landed yet
+const begin = (f: Fight): Fight => ({ ...f, turn: f.turn + 1, blows: [] });
+const land = (f: Fight, who: number, amount: number): Fight => ({
+  ...f,
+  blows: [...f.blows, { who, amount }],
+});
+
 export function enemyTurn(f: Fight): Fight {
   const e = f.fighters[f.actor],
     dmg = hit(e.attack, you(f).defense);
-  let out = patch(f, 0, { hp: Math.max(0, you(f).hp - dmg) });
+  let out = patch(begin(f), 0, { hp: Math.max(0, you(f).hp - dmg) });
+  out = land(out, 0, dmg);
   out = patch(out, f.actor, { ready: 0 });
   out = say(out, `${e.name} hits you for ${dmg}.`);
   return you(out).hp <= 0
@@ -126,7 +144,8 @@ export function enemyTurn(f: Fight): Fight {
 export function strike(f: Fight): Fight {
   const t = f.fighters[f.target],
     dmg = hit(you(f).attack, t.defense);
-  let out = patch(f, f.target, { hp: Math.max(0, t.hp - dmg) });
+  let out = patch(begin(f), f.target, { hp: Math.max(0, t.hp - dmg) });
+  out = land(out, f.target, dmg);
   out = patch(out, 0, { ready: 0 });
   out = say(out, `You hit ${t.name} for ${dmg}.`);
   out = fall(out, f.target);
@@ -136,18 +155,21 @@ export function strike(f: Fight): Fight {
 // a potion or a flask; the turn goes on, but only one item a turn
 export function applyItem(f: Fight, item: Item): Fight {
   let out: Fight = {
-    ...f,
+    ...begin(f),
     used: { ...f.used, [item.id]: (f.used[item.id] ?? 0) + 1 },
     itemUsed: true,
   };
   if (item instanceof Consumable) {
-    out = patch(out, 0, { hp: Math.min(you(f).maxHp, you(f).hp + item.heal) });
+    const healed = Math.min(you(f).maxHp, you(f).hp + item.heal) - you(f).hp;
+    out = patch(out, 0, { hp: you(f).hp + healed });
+    out = land(out, 0, -healed);
     out = say(out, `${item.name}: +${item.heal}.`);
     return out;
   }
   if (item instanceof Throwable) {
     const t = f.fighters[f.target];
     out = patch(out, f.target, { hp: Math.max(0, t.hp - item.damage) });
+    out = land(out, f.target, item.damage);
     out = say(out, `${item.name} hits ${t.name} for ${item.damage}.`);
     out = fall(out, f.target);
     return foes(out).length ? out : settle(out);
@@ -162,7 +184,7 @@ export function flee(f: Fight): Fight {
   const fastest = Math.max(...foes(f).map((e) => e.agility));
   if (you(f).agility > fastest)
     return { ...say(f, "You run."), phase: "over", outcome: "fled" };
-  return tick(say(patch(f, 0, { ready: 0 }), "They're faster."));
+  return tick(say(patch(begin(f), 0, { ready: 0 }), "They're faster."));
 }
 
 export const retarget = (f: Fight, i: number): Fight =>
